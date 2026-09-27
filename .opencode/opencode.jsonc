@@ -33,7 +33,7 @@
   // Default session model. Currently justwoker (the $70 pool). To move
   // spend to the larger agentrouter pool ($180), change this one value
   // and restart — config is not hot-reloaded.
-  "model": "agentrouter/claude-opus-4-8",
+  "model": "justwoker/claude-opus-4-8",
 
   // NOTE: `instructions` is deliberately NOT set.
   // Listing the spec docs would load ~6,200 lines into every session
