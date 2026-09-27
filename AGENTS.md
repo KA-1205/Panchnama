@@ -181,10 +181,29 @@ A task is done only when all of these hold:
 
 ## 7. Working on a Phase
 
+**Every phase commits to its own branch. The agent never merges and never pushes — syncing `main` is the user's call.**
+
+| Step | Command | Branch |
+|---|---|---|
+| 1 | `/phase N` | creates `phase/N` from `main`, implements, runs gate, leaves work **uncommitted** |
+| 2 | `/commit N` | re-runs gate + audit + secrets check, then commits **on `phase/N`** |
+| 3 | you sync | merge, rebase, or cherry-pick `phase/N` into `main` as you judge fit |
+| 4 | you push | `git push origin phase/N`, and `main` if you synced it |
+
+Rules that make this enforceable rather than aspirational:
+
+- **Never implement on `main`.** A dirty tree at phase start means someone else's work is uncommitted; stop and ask.
+- **Never commit on `main`.** Only `/commit` commits, and it refuses unless the branch is `phase/N`.
+- **Never merge or push.** No command does either. A phase branch is handed over intact.
+- **Nothing merges automatically, so check dependencies yourself.** Before building on Phase N-1, confirm its work is actually on `main`. If it is not, stop and say so. Do not silently branch from `phase/N-1` instead, and do not assume the sync will happen.
+- Phase 0 predates this rule and sits directly on `main` as `d06913c`. That is the one exception.
+
+Then, per phase:
+
 1. Read the phase in `BUILD_ORDER.md` and confirm its dependencies are merged.
 2. Implement only that phase's tasks.
 3. Run the phase's gate. Do not proceed on a partial pass.
-4. Update `BUILD_ORDER.md` to mark the gate as passed.
+4. Mark the phase `implemented` in `BUILD_ORDER.md` — not passed. Passing is the user's call once they have reviewed the branch and the gate output.
 5. If a stop condition is hit, stop and ask — do not improvise a workaround.
 
 ---

@@ -46,12 +46,24 @@ preferences — do not weaken one to make something compile or pass:
 Run the phase's stated gate. All of it. A partial pass is a failure — report
 which specific check failed and why.
 
-## Never commit
+## Never commit, never merge, never push
 
-Do not run `git commit`, `git add`, `git push`, or any history-rewriting
-command. Leave all changes in the working tree. Committing is a separate gated
-step owned by the `/commit` command, which requires the gate **and** an
-invariant audit to pass first. You may read git state freely.
+Do not run `git commit`, `git add`, `git merge`, `git rebase`, `git push`, or
+any history-rewriting command. Leave all changes in the working tree.
+
+Committing is `/commit`, gated on the phase gate **and** an invariant audit.
+Syncing the branch into `main` is the user's decision, made outside this
+session. Neither is yours to do.
+
+## Never work on `main`
+
+You must be on `phase/N` before you read or write a single file. If you are on
+`main`, or if the tree is dirty when the phase starts, stop and report — a
+phase must begin from a known state.
+
+Because nothing merges automatically, also confirm the previous phase's work is
+present on `main` before you build on it. If it is missing, stop and say so
+rather than assuming the user will sync.
 
 ## Report back
 

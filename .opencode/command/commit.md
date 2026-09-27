@@ -5,6 +5,24 @@ agent: gate-runner
 
 Commit the work for Phase $ARGUMENTS — **but only if every check below passes.**
 
+## 0. Branch precondition
+
+Refuse unless both hold:
+
+- current branch is `phase/$ARGUMENTS`, **not** `main`
+- `git status --porcelain` is non-empty — there is something to commit
+
+## Never merge, never push
+
+`git merge`, `git rebase`, and `git push` are forbidden here. A phase branch is
+handed to the user intact; how it lands on `main` is their call.
+
+## Never commit on `main`
+
+`main` is the sync target, not a work branch. An un-gated commit there is
+recoverable only with a reset, so `/commit` refuses unless the branch is
+`phase/N`.
+
 Run these in order. Stop at the first failure.
 
 ## 1. Gate
@@ -51,7 +69,19 @@ Bad:
 update stuff
 ```
 
+The existing Phase 0 commit reads `chore(monorepo): Phase 0 scaffold — pnpm
+workspace, 6 packages, TS strict, CI`. That is a change list, not a proof. For
+comparison, a correct one would have read `Gate: 8/8 turbo tasks across lint,
+typecheck, test; ruff, mypy, pytest green in the ml-service venv. Audit: no
+findings.`
+
 Do not push. Pushing is the user's decision, always.
+
+## 5. After committing
+
+Report the branch name and the commit SHA. Remind the user that syncing this
+phase into `main` is their decision — the agent does not merge and does not
+push. Nothing further happens automatically.
 
 ## 5. If anything failed
 
