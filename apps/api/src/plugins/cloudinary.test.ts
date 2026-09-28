@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { v2 as cloudinary } from 'cloudinary';
-import { createCloudinaryAdapter } from './cloudinary.js';
+import { createCloudinaryAdapter, isEagerPending } from './cloudinary.js';
 import { testConfig } from '../testing/fakes.js';
 
 const config = testConfig({
@@ -53,5 +53,38 @@ describe('URL signing grants no expiry (§3.11)', () => {
     }
     // The signed derivative URL is type upload and carries no auth_token expiry.
     expect(url).not.toContain('__cld_token__');
+  });
+});
+
+describe('async generative eager status classification (§3.11, §3.6)', () => {
+  // Regression: the live Cloudinary account returns `status: 'processing'` (with
+  // the destination URL already populated) for an async `e_gen_*` transform,
+  // BEFORE the bytes exist. Classifying that as ready would serve a URL that is
+  // still generating. Only 'complete', or a status-less synchronous eager with a
+  // URL, is ready.
+  it('treats a still-generating "processing" entry as pending even with a URL', () => {
+    expect(
+      isEagerPending({ status: 'processing', secure_url: 'https://res/x.jpg' }),
+    ).toBe(true);
+  });
+
+  it('treats "pending" as pending', () => {
+    expect(isEagerPending({ status: 'pending' })).toBe(true);
+  });
+
+  it('treats "failed" as not-ready (never served as ready)', () => {
+    expect(isEagerPending({ status: 'failed', secure_url: 'https://res/x.jpg' })).toBe(true);
+  });
+
+  it('treats a missing eager entry as pending', () => {
+    expect(isEagerPending(undefined)).toBe(true);
+  });
+
+  it('treats "complete" with a URL as ready', () => {
+    expect(isEagerPending({ status: 'complete', secure_url: 'https://res/x.jpg' })).toBe(false);
+  });
+
+  it('treats a synchronous eager (no status, has URL) as ready', () => {
+    expect(isEagerPending({ secure_url: 'https://res/x.jpg' })).toBe(false);
   });
 });

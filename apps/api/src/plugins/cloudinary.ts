@@ -22,11 +22,33 @@ export function configureCloudinary(config: Config): void {
 }
 
 /** Typed view of the eager-transformation entries the SDK returns. */
-interface EagerEntry {
+export interface EagerEntry {
   readonly secure_url?: string;
   readonly url?: string;
   readonly bytes?: number;
   readonly status?: string;
+}
+
+/**
+ * Decide whether an eager transformation is still being produced.
+ *
+ * Cloudinary reports async (`eager_async`) generative work as
+ * `status: 'processing'` — and, transiently, `'pending'` — while returning the
+ * destination URL immediately, before the bytes exist. It is complete only when
+ * the status is `'complete'` (async) or absent altogether (a synchronous eager
+ * finished inline). Any other state — `'processing'`, `'pending'`, `'failed'`,
+ * or a missing entry — is NOT ready: the caller must record the derivative as
+ * pending and never serve that URL yet (AGENTS.md §3.11, §3.6). Verified against
+ * the live account, which returns `'processing'` for `e_gen_*`.
+ */
+export function isEagerPending(eager: EagerEntry | undefined): boolean {
+  if (eager === undefined) {
+    return true;
+  }
+  const status = eager.status;
+  const isComplete = status === undefined || status === 'complete';
+  const hasUrl = eager.secure_url !== undefined || eager.url !== undefined;
+  return !(isComplete && hasUrl);
 }
 
 export function createCloudinaryAdapter(config: Config): CloudinaryPort {
@@ -84,8 +106,7 @@ export function createCloudinaryAdapter(config: Config): CloudinaryPort {
       })) as UploadApiResponse & { eager?: EagerEntry[]; version?: number };
 
       const eager = response.eager?.[0];
-      const pending = eager === undefined || eager.status === 'pending' ||
-        (eager.secure_url === undefined && eager.url === undefined);
+      const pending = isEagerPending(eager);
 
       return {
         status: pending ? 'pending' : 'ready',

@@ -225,9 +225,11 @@ export interface CloudinaryPort {
   /**
    * Apply a transformation to an existing asset as an EAGER derivative and return
    * the derived asset's identity. Generative transforms are asynchronous
-   * (420 Pending / 423 Locked); when Cloudinary reports the derivative is still
-   * generating, `status` is `'pending'` and `secure_url` is null — the caller
-   * must never block on it (AGENTS.md §3.11, CLOUDINARY_TRANSFORMATIONS.md §4).
+   * (420 Pending / 423 Locked); the live account reports them as `status:
+   * 'processing'` (or 'pending') with the destination URL already present but the
+   * bytes not yet generated. Whenever the derivative is still generating, `status`
+   * is `'pending'` and `secure_url` is null — the caller must never block on it or
+   * serve the URL early (AGENTS.md §3.11, CLOUDINARY_TRANSFORMATIONS.md §4).
    * Signing is done by the SDK; no HMAC is hand-rolled.
    */
   createEagerDerivative(input: EagerDerivativeInput): Promise<EagerDerivativeResult>;
