@@ -22,7 +22,6 @@ from src.models.base import (
     SaplingDetector,
 )
 
-
 # Water-specific detection thresholds
 _WATER_CONF = 0.30
 _CHANGE_DELTA_WATER = 35  # grayscale diff for water change (slightly lower than forestry)

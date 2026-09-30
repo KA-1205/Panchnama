@@ -11,15 +11,13 @@ so this script supports resume and checksum verification.
 from __future__ import annotations
 
 import hashlib
-import os
 import sys
 import tarfile
 import zipfile
 from pathlib import Path
-from urllib.request import urlopen, Request
+from urllib.request import Request, urlopen
 
 from training.config import CFG
-
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 
@@ -111,8 +109,12 @@ def download_atlantis() -> None:
 
 
 if __name__ == "__main__":
+    cmds = (
+        "download_forestnet|download_levir_cd|download_s1s2_water|"
+        "download_glh_water|download_atlantis"
+    )
     if len(sys.argv) < 2:
-        print("Usage: python -m training.data.download_forestnet|download_levir_cd|download_s1s2_water|download_glh_water|download_atlantis")
+        print(f"Usage: python -m training.data.{cmds}")
         sys.exit(1)
 
     fn = sys.argv[1]

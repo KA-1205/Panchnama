@@ -13,23 +13,26 @@ from __future__ import annotations
 
 import argparse
 import shutil
-import sys
 from pathlib import Path
 
-import cv2
 import numpy as np
 import yaml
-
 from training.config import CFG
 
 
-def _split_indices(n: int, train_ratio: float = 0.8, val_ratio: float = 0.1) -> tuple[list, list, list]:
+def _split_indices(
+    n: int, train_ratio: float = 0.8, val_ratio: float = 0.1
+) -> tuple[list, list, list]:
     """Deterministic split indices."""
     np.random.seed(CFG.seed)
     idx = np.random.permutation(n)
     n_train = int(n * train_ratio)
     n_val = int(n * val_ratio)
-    return idx[:n_train].tolist(), idx[n_train:n_train + n_val].tolist(), idx[n_train + n_val:].tolist()
+    return (
+        idx[:n_train].tolist(),
+        idx[n_train:n_train + n_val].tolist(),
+        idx[n_train + n_val:].tolist(),
+    )
 
 
 def _write_yaml(out_dir: Path, names: list[str]) -> None:
@@ -102,7 +105,11 @@ def prepare_water(source: str) -> None:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Prepare YOLO datasets")
     p.add_argument("sector", choices=["forestry", "water"])
-    p.add_argument("--source", choices=["s1s2_water", "glh_water", "atlantis"], default="s1s2_water")
+    p.add_argument(
+        "--source",
+        choices=["s1s2_water", "glh_water", "atlantis"],
+        default="s1s2_water",
+    )
     args = p.parse_args()
 
     if args.sector == "forestry":

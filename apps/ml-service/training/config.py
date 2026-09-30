@@ -28,10 +28,10 @@ class TrainingConfig:
     eval_dir: Path = Path("eval")
 
     # --- Forestry (sapling) ---
-    forestry: "ForestryConfig" = None  # type: ignore[assignment]
+    forestry: ForestryConfig = None  # type: ignore[assignment]
 
     # --- Water ---
-    water: "WaterConfig" = None  # type: ignore[assignment]
+    water: WaterConfig = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         # Deferred instantiation to avoid circular refs at module load

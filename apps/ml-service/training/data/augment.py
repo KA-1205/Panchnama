@@ -8,9 +8,8 @@ tweaks are in the config.
 from __future__ import annotations
 
 import albumentations as A
+import cv2
 from albumentations.pytorch import ToTensorV2
-
-from training.config import CFG
 
 
 def get_train_augs(imgsz: int, sector: str) -> A.Compose:
@@ -56,4 +55,3 @@ def get_val_augs(imgsz: int) -> A.Compose:
 
 
 # Need cv2 for interpolation constants
-import cv2

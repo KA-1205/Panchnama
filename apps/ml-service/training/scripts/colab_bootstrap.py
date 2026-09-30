@@ -17,8 +17,8 @@ Usage in Kaggle:
 from __future__ import annotations
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -43,7 +43,10 @@ def setup_colab() -> Path:
     repo_path = Path("/content/drive/MyDrive/impact-platform")
     if not repo_path.exists():
         print("Cloning repo to Drive...")
-        subprocess.run(["git", "clone", "https://github.com/YOUR_REPO.git", str(repo_path)], check=True)
+        subprocess.run(
+            ["git", "clone", "https://github.com/YOUR_REPO.git", str(repo_path)],
+            check=True,
+        )
     else:
         print(f"Repo exists at {repo_path}")
 
@@ -78,11 +81,30 @@ def install_requirements(platform: str) -> None:
     req_path = Path("training") / req_file
     if req_path.exists():
         print(f"Installing {req_file}...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", str(req_path)], check=True)
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-q", "-r", str(req_path)],
+            check=True,
+        )
     else:
         print(f"Warning: {req_path} not found, installing base requirements")
-        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements.txt"], check=True)
-        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "ultralytics", "torch", "torchvision", "albumentations"], check=True)
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-q", "-r", "requirements.txt"],
+            check=True,
+        )
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-q",
+                "ultralytics",
+                "torch",
+                "torchvision",
+                "albumentations",
+            ],
+            check=True,
+        )
 
 
 def verify_gpu() -> None:

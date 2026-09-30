@@ -10,14 +10,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
-import torch
-import numpy as np
-from ultralytics import YOLO
-
 from training.config import CFG
+from ultralytics import YOLO
 
 
 def evaluate_yolo(weights: Path, data_yaml: Path, sector: str) -> dict:
@@ -68,7 +64,9 @@ def evaluate_water(source: str) -> dict:
     data_yaml = CFG.prepared_root / f"water_yolo_{source}" / "dataset.yaml"
 
     yolo_metrics = evaluate_yolo(weights, data_yaml, f"water_{source}")
-    cf_metrics = evaluate_changeformer(CFG.weights_dir / cfg.water_change_output_name, f"water_{source}")
+    cf_metrics = evaluate_changeformer(
+        CFG.weights_dir / cfg.water_change_output_name, f"water_{source}"
+    )
 
     return {
         "sector": "water",
@@ -82,16 +80,21 @@ def evaluate_water(source: str) -> dict:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Evaluate trained models")
     p.add_argument("sector", choices=["forestry", "water"])
-    p.add_argument("--source", choices=["s1s2_water", "glh_water", "atlantis"], default="s1s2_water")
+    p.add_argument(
+        "--source",
+        choices=["s1s2_water", "glh_water", "atlantis"],
+        default="s1s2_water",
+    )
     p.add_argument("--output", type=Path, help="Output JSON path")
     args = p.parse_args()
 
-    if args.sector == "forestry":
-        metrics = evaluate_forestry()
-    else:
-        metrics = evaluate_water(args.source)
+    metrics = (
+        evaluate_forestry() if args.sector == "forestry" else evaluate_water(args.source)
+    )
 
-    out_path = args.output or (CFG.eval_dir / f"eval_{args.sector}_{metrics.get('version', 'v1.0')}.json")
+    out_path = args.output or (
+        CFG.eval_dir / f"eval_{args.sector}_{metrics.get('version', 'v1.0')}.json"
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w") as f:
         json.dump(metrics, f, indent=2)
