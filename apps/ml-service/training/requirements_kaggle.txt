@@ -1,0 +1,21 @@
+# Kaggle requirements for Phase 6.5 training
+# Kaggle has torch/torchvision preinstalled with CUDA 12.x
+
+ultralytics>=8.2,<9
+albumentations>=1.4
+opencv-python-headless>=4.10
+pyyaml>=6.0
+tqdm>=4.66
+pycocotools>=2.0
+matplotlib>=3.8
+seaborn>=0.13
+pandas>=2.2
+numpy>=2.0
+scikit-learn>=1.5
+
+# Kaggle has requests, huggingface-hub preinstalled
+# No wandb (no internet during training unless enabled)
+
+# Export
+onnx>=1.16
+onnxsim>=0.4
