@@ -26,14 +26,16 @@ def _download_with_resume(url: str, dest: Path, expected_sha256: str | None = No
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     headers = {}
+    resume_from = 0
     if dest.exists():
-        headers["Range"] = f"bytes={dest.stat().st_size}-"
+        resume_from = dest.stat().st_size
+        headers["Range"] = f"bytes={resume_from}-"
 
     req = Request(url, headers=headers)
     with urlopen(req) as resp, dest.open("ab") as f:
         total = resp.length or 0
         if headers:
-            print(f"Resuming {dest.name} from {dest.stat().st_size} bytes...")
+            print(f"Resuming {dest.name} from {resume_from} bytes...")
         else:
             print(f"Downloading {dest.name} ({total / 1e9:.1f} GB)...")
 
@@ -42,7 +44,8 @@ def _download_with_resume(url: str, dest: Path, expected_sha256: str | None = No
             f.write(chunk)
             downloaded += len(chunk)
             if total:
-                pct = (dest.stat().st_size / (total + headers.get("Range", 0))) * 100
+                # total is remaining bytes after resume; add resume_from for total file size
+                pct = ((resume_from + downloaded) / (total + resume_from)) * 100
                 print(f"\r  {pct:.1f}%", end="", flush=True)
 
     print(f"\n  Done: {dest}")
