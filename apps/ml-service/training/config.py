@@ -81,6 +81,14 @@ class TrainingConfig:
             d.mkdir(parents=True, exist_ok=True)
 
 
+def _get_batch_size() -> int:
+    """Get batch size from env var, default to 16."""
+    try:
+        return int(os.environ.get("TRAINING_BATCH_SIZE", "16"))
+    except ValueError:
+        return 16
+
+
 @dataclass(frozen=True)
 class ForestryConfig:
     """Forestry-specific (sapling) training config."""
@@ -88,7 +96,7 @@ class ForestryConfig:
     # YOLOv8n sapling detector — production defaults
     sapling_epochs: int = 50
     sapling_imgsz: int = 640
-    sapling_batch: int = 16
+    sapling_batch: int = field(default_factory=_get_batch_size)
     sapling_lr0: float = 0.01
     sapling_lrf: float = 0.01
     sapling_momentum: float = 0.937
@@ -101,7 +109,7 @@ class ForestryConfig:
     # ChangeFormer (forestry) — production epochs for LEVIR-CD
     change_epochs: int = _EPOCHS_OVERRIDE.get("forestry_change", 200)
     change_imgsz: int = 256
-    change_batch: int = 16
+    change_batch: int = field(default_factory=_get_batch_size)
     change_lr: float = 1e-4
     change_output_name: str = "changeformer.pt"
 
@@ -119,7 +127,7 @@ class WaterConfig:
     # YOLOv8n water body detector — production defaults
     water_epochs: int = 50
     water_imgsz: int = 640
-    water_batch: int = 16
+    water_batch: int = field(default_factory=_get_batch_size)
     water_lr0: float = 0.01
     water_lrf: float = 0.01
     water_momentum: float = 0.937
@@ -132,7 +140,7 @@ class WaterConfig:
     # ChangeFormer (water) — production epochs
     water_change_epochs: int = _EPOCHS_OVERRIDE.get("water_change", 200)
     water_change_imgsz: int = 256
-    water_change_batch: int = 16
+    water_change_batch: int = field(default_factory=_get_batch_size)
     water_change_lr: float = 1e-4
     water_change_output_name: str = "changeformer_water.pt"
 
