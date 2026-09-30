@@ -73,8 +73,12 @@ class ForestryConfig:
     change_output_name: str = "changeformer.pt"
 
     # Datasets
-    forestnet_url: str = "https://github.com/forestnet/forestnet/releases/download/v1.0/forestnet_v1.zip"
-    levir_cd_url: str = "https://github.com/justchenhao/LEVIR-CD/releases/download/v1.0/LEVIR-CD.zip"
+    # ForestNet: GEO-Bench version on Zenodo (direct download, ~1.2 GB)
+    forestnet_url: str = "https://zenodo.org/records/8008717/files/data.zip"
+    # LEVIR-CD: Hugging Face mirror with train/val/test splits
+    levir_cd_train_url: str = "https://huggingface.co/datasets/satellite-image-deep-learning/LEVIR-CD/resolve/main/train.zip"
+    levir_cd_val_url: str = "https://huggingface.co/datasets/satellite-image-deep-learning/LEVIR-CD/resolve/main/val.zip"
+    levir_cd_test_url: str = "https://huggingface.co/datasets/satellite-image-deep-learning/LEVIR-CD/resolve/main/test.zip"
 
 
 @dataclass(frozen=True)
