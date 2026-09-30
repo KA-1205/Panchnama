@@ -9,12 +9,10 @@ Run:
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
-from ultralytics import YOLO
-
 from training.config import CFG
+from ultralytics import YOLO
 
 
 def train_forestry() -> Path:
@@ -107,7 +105,11 @@ def train_water(source: str) -> Path:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Train YOLO detector")
     p.add_argument("sector", choices=["forestry", "water"])
-    p.add_argument("--source", choices=["s1s2_water", "glh_water", "atlantis"], default="s1s2_water")
+    p.add_argument(
+        "--source",
+        choices=["s1s2_water", "glh_water", "atlantis"],
+        default="s1s2_water",
+    )
     args = p.parse_args()
 
     if args.sector == "forestry":

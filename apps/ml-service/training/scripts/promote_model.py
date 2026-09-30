@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -151,7 +150,11 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Promote trained weights to model_registry")
     p.add_argument("sector", choices=["forestry", "water"])
     p.add_argument("--version", required=True, help="New version string (e.g., v1.0)")
-    p.add_argument("--source", choices=["s1s2_water", "glh_water", "atlantis"], default="s1s2_water")
+    p.add_argument(
+        "--source",
+        choices=["s1s2_water", "glh_water", "atlantis"],
+        default="s1s2_water",
+    )
     p.add_argument("--eval", type=Path, help="Path to evaluation JSON")
     args = p.parse_args()
 

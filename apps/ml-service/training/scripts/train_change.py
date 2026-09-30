@@ -9,13 +9,10 @@ Run:
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-
 from training.config import CFG
 
 
@@ -75,11 +72,15 @@ def train_forestry() -> Path:
 
     print("Training forestry ChangeFormer...")
     model = ChangeFormer().to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.change_lr)
+    _ = torch.optim.AdamW(model.parameters(), lr=cfg.change_lr)
 
     # TODO: Create DataLoader from LEVIR-CD
-    # train_ds = ChangeDataset(CFG.data_root / "LEVIR-CD", "train", cfg.change_imgsz, "forestry")
-    # train_loader = DataLoader(train_ds, batch_size=cfg.change_batch, shuffle=True, num_workers=CFG.num_workers)
+    # train_ds = ChangeDataset(
+    #     CFG.data_root / "LEVIR-CD", "train", cfg.change_imgsz, "forestry"
+    # )
+    # train_loader = DataLoader(
+    #     train_ds, batch_size=cfg.change_batch, shuffle=True, num_workers=CFG.num_workers
+    # )
 
     # Placeholder training loop
     for epoch in range(cfg.change_epochs):
@@ -104,11 +105,15 @@ def train_water(source: str) -> Path:
 
     print(f"Training water ChangeFormer ({source})...")
     model = ChangeFormer().to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.water_change_lr)
+    _ = torch.optim.AdamW(model.parameters(), lr=cfg.water_change_lr)
 
     # TODO: Create DataLoader from water dataset
-    # train_ds = ChangeDataset(CFG.data_root / source, "train", cfg.water_change_imgsz, "water")
-    # train_loader = DataLoader(train_ds, batch_size=cfg.water_change_batch, shuffle=True, num_workers=CFG.num_workers)
+    # train_ds = ChangeDataset(
+    #     CFG.data_root / source, "train", cfg.water_change_imgsz, "water"
+    # )
+    # train_loader = DataLoader(
+    #     train_ds, batch_size=cfg.water_change_batch, shuffle=True, num_workers=CFG.num_workers
+    # )
 
     for epoch in range(cfg.water_change_epochs):
         print(f"  Epoch {epoch + 1}/{cfg.water_change_epochs}")
@@ -122,7 +127,11 @@ def train_water(source: str) -> Path:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Train ChangeFormer")
     p.add_argument("sector", choices=["forestry", "water"])
-    p.add_argument("--source", choices=["s1s2_water", "glh_water", "atlantis"], default="s1s2_water")
+    p.add_argument(
+        "--source",
+        choices=["s1s2_water", "glh_water", "atlantis"],
+        default="s1s2_water",
+    )
     args = p.parse_args()
 
     if args.sector == "forestry":
