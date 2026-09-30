@@ -70,19 +70,25 @@ def _extract(archive: Path, out_dir: Path) -> None:
 
 
 def download_forestnet() -> None:
-    """Download ForestNet v1 (~1.2M patches, ~1.5 GB)."""
+    """Download ForestNet (GEO-Bench version, ~1.2 GB)."""
     url = CFG.forestry.forestnet_url
-    dest = CFG.data_root / "forestnet_v1.zip"
+    dest = CFG.data_root / "forestnet.zip"
     _download_with_resume(url, dest)
     _extract(dest, CFG.data_root / "forestnet")
 
 
 def download_levir_cd() -> None:
-    """Download LEVIR-CD (~637 pairs, ~1 GB)."""
-    url = CFG.forestry.levir_cd_url
-    dest = CFG.data_root / "LEVIR-CD.zip"
-    _download_with_resume(url, dest)
-    _extract(dest, CFG.data_root / "LEVIR-CD")
+    """Download LEVIR-CD train/val/test splits (~1 GB total)."""
+    urls = {
+        "train": CFG.forestry.levir_cd_train_url,
+        "val": CFG.forestry.levir_cd_val_url,
+        "test": CFG.forestry.levir_cd_test_url,
+    }
+    for split, url in urls.items():
+        dest = CFG.data_root / f"LEVIR-CD_{split}.zip"
+        _download_with_resume(url, dest)
+        # Extract each split into LEVIR-CD/{split}/
+        _extract(dest, CFG.data_root / "LEVIR-CD" / split)
 
 
 def download_s1s2_water() -> None:

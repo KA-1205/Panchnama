@@ -50,7 +50,19 @@ def _write_yaml(out_dir: Path, names: list[str]) -> None:
 
 
 def prepare_forestry() -> None:
-    """ForestNet → YOLO (single class: sapling)."""
+    """ForestNet (GEO-Bench) → YOLO (single class: sapling).
+
+    Expected GEO-Bench structure after extraction:
+      data/raw/forestnet/
+        data.zip contents extracted to:
+          images/  (Landsat 8 composites)
+          labels/  (driver labels, but we need sapling detection)
+
+    NOTE: ForestNet is a deforestation driver classification dataset,
+    not a sapling detection dataset. For actual sapling detection,
+    you would need a different dataset (e.g., custom annotated data).
+    This function creates a YOLO structure placeholder.
+    """
     raw = CFG.data_root / "forestnet"
     if not raw.exists():
         raise FileNotFoundError(f"ForestNet not found at {raw}. Run download_forestnet first.")
@@ -58,16 +70,13 @@ def prepare_forestry() -> None:
     out = CFG.prepared_root / "forestry_yolo"
     if out.exists():
         shutil.rmtree(out)
-    (out / "images" / "train").mkdir(parents=True)
-    (out / "images" / "val").mkdir(parents=True)
-    (out / "images" / "test").mkdir(parents=True)
-    (out / "labels" / "train").mkdir(parents=True)
-    (out / "labels" / "val").mkdir(parents=True)
-    (out / "labels" / "test").mkdir(parents=True)
+    for split in ("train", "val", "test"):
+        (out / "images" / split).mkdir(parents=True)
+        (out / "labels" / split).mkdir(parents=True)
 
-    # ForestNet structure: patches/ with images and masks
-    # This is a placeholder — actual structure depends on ForestNet release
-    print("ForestNet preparation: implement based on actual directory structure")
+    # TODO: Implement actual ForestNet → YOLO conversion
+    # For now, create empty dataset.yaml as placeholder
+    print("ForestNet preparation: placeholder — implement actual conversion")
     print(f"  Expected raw: {raw}")
     print(f"  Output: {out}")
 
@@ -95,16 +104,64 @@ def prepare_water(source: str) -> None:
         (out / "images" / split).mkdir(parents=True)
         (out / "labels" / split).mkdir(parents=True)
 
-    print(f"Water ({source}) preparation: implement based on actual directory structure")
+    print(f"Water ({source}) preparation: placeholder — implement actual conversion")
     print(f"  Expected raw: {raw}")
     print(f"  Output: {out}")
 
     _write_yaml(out, ["water"])
 
 
+def prepare_levir_cd() -> None:
+    """LEVIR-CD → Change detection format (before/after pairs + masks).
+
+    Expected structure after download:
+      data/raw/LEVIR-CD/
+        train/A/  (before images)
+        train/B/  (after images)
+        train/label/  (change masks)
+        val/A/, val/B/, val/label/
+        test/A/, test/B/, test/label/
+
+    This prepares the data for ChangeFormer training which expects
+    (before, after, mask) triplets.
+    """
+    raw = CFG.data_root / "LEVIR-CD"
+    if not raw.exists():
+        raise FileNotFoundError(f"LEVIR-CD not found at {raw}. Run download_levir_cd first.")
+
+    out = CFG.prepared_root / "levir_cd"
+    if out.exists():
+        shutil.rmtree(out)
+
+    # Create structure for ChangeFormer training
+    for split in ("train", "val", "test"):
+        (out / split / "A").mkdir(parents=True)
+        (out / split / "B").mkdir(parents=True)
+        (out / split / "label").mkdir(parents=True)
+
+    # Copy/link files to prepared structure
+    import os
+    for split in ("train", "val", "test"):
+        split_raw = raw / split
+        split_out = out / split
+        if not split_raw.exists():
+            print(f"  Warning: {split_raw} not found, skipping")
+            continue
+        for subdir in ("A", "B", "label"):
+            src = split_raw / subdir
+            dst = split_out / subdir
+            if src.exists():
+                for f in src.iterdir():
+                    if f.suffix in (".png", ".jpg", ".tif", ".tiff"):
+                        dst_f = dst / f.name
+                        if not dst_f.exists():
+                            os.link(f, dst_f)  # Hard link to save space
+    print(f"LEVIR-CD preparation complete: {out}")
+
+
 if __name__ == "__main__":
-    p = argparse.ArgumentParser(description="Prepare YOLO datasets")
-    p.add_argument("sector", choices=["forestry", "water"])
+    p = argparse.ArgumentParser(description="Prepare YOLO / Change Detection datasets")
+    p.add_argument("sector", choices=["forestry", "water", "levir_cd"])
     p.add_argument(
         "--source",
         choices=["s1s2_water", "glh_water", "atlantis"],
@@ -114,5 +171,9 @@ if __name__ == "__main__":
 
     if args.sector == "forestry":
         prepare_forestry()
-    else:
+    elif args.sector == "water":
         prepare_water(args.source)
+    elif args.sector == "levir_cd":
+        prepare_levir_cd()
+    else:
+        raise ValueError(f"Unknown sector: {args.sector}")
