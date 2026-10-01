@@ -1,5 +1,7 @@
 # Frontend Architecture Decision
 
+> **Panchnama** — a written record of inspection, signed by a witness.
+
 ---
 
 ## Decision: Feature-Based Structure (Not Component-Based)

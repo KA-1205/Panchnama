@@ -6,7 +6,7 @@ Instructions for any AI coding agent or engineer working in this repository.
 
 ## 1. What This Project Is
 
-An AI media intelligence platform. Field workers capture geo-tagged photos and short videos; the platform verifies their authenticity, analyses them with custom computer-vision models, pairs before/after evidence, and generates audit-ready reports.
+**Panchnama** (_पंचनामा_ — a written record of inspection, signed by a witness) is an AI media intelligence platform. Field workers capture geo-tagged photos and short videos; the platform verifies their authenticity, analyses them with custom computer-vision models, pairs before/after evidence, and generates audit-ready reports.
 
 Read these before writing code, in this order:
 

@@ -1,5 +1,7 @@
 # Build Order
 
+> **Panchnama** — a written record of inspection, signed by a witness.
+
 **Purpose:** Execution plan for an AI coding agent (or a team) to implement the platform from an empty repository.
 **Read first:** `PRD.md` (what), `ARCHITECTURE.md` (how), `AGENTS.md` (rules).
 

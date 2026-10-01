@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> **Panchnama** — a written record of inspection, signed by a witness.
+
 ---
 
 ## Overview

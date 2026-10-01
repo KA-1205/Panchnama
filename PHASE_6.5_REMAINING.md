@@ -1,5 +1,7 @@
 # Phase 6.5 — Remaining Issues & TODO List
 
+> **Panchnama** — a written record of inspection, signed by a witness.
+
 > Status: All lint (ruff), typecheck (mypy), and tests (pytest) pass. Scaffolding is complete and committed on branch `phase/6.5`.
 
 ---

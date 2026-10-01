@@ -1,5 +1,7 @@
 # Monorepo File Structure
 
+> **Panchnama** — a written record of inspection, signed by a witness.
+
 ---
 
 ## Root Layout
