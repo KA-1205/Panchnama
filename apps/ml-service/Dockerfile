@@ -20,12 +20,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt requirements-ml.txt ./
 RUN pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt
 
-# App code. Model weights are gitignored and provided at deploy time (mounted
-# volume or a build arg that downloads them into WEIGHTS_DIR). When absent the
-# forestry placeholder runs the deterministic baseline (weights_uri NULL), so
-# the image stays buildable without a weights blob.
+# App code + the learned ONNX weights (sapling/water yolov8n.onnx,
+# changeformer*.onnx + .onnx.data, COCO base yolov8n.pt). The weights are
+# committed under apps/ml-service/weights/ (force-tracked past the global *.onnx
+# / *.pt ignore) so the image is self-contained — the learned pipelines resolve
+# them from WEIGHTS_DIR at load. ~32 MB total.
 COPY src/ ./src/
-RUN mkdir -p /app/weights
+COPY weights/ ./weights/
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
