@@ -14,22 +14,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     "ffmpeg=7:*" \
     && rm -rf /var/lib/apt/lists/*
 
-# Python deps first for layer caching. requirements.txt is the light runtime;
-# requirements-ml.txt adds the heavy learned-weights path (torch, ultralytics)
-# the production image needs once real forestry weights land.
-COPY requirements.txt requirements-ml.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt
+# Lambda Web Adapter (copied from public ECR image for container-based Lambda)
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.0.1 /lambda-adapter /opt/extensions/lambda-adapter
 
-# App code. Model weights are gitignored and provided at deploy time (mounted
-# volume or a build arg that downloads them into WEIGHTS_DIR). When absent the
-# forestry placeholder runs the deterministic baseline (weights_uri NULL), so
-# the image stays buildable without a weights blob.
+# Python deps first for layer caching. Install the CPU-only torch wheel from the
+# PyTorch CPU index (App Runner / Cloud Run are CPU — this avoids pulling ~2 GB of
+# CUDA libraries and roughly halves the image), then the rest from PyPI.
+COPY requirements.txt requirements-ml.txt ./
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+ && pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt
+
+# App code + the learned ONNX weights (sapling/water yolov8n.onnx,
+# changeformer*.onnx + .onnx.data, COCO base yolov8n.pt). The weights are
+# committed under apps/ml-service/weights/ (force-tracked past the global *.onnx
+# / *.pt ignore) so the image is self-contained — the learned pipelines resolve
+# them from WEIGHTS_DIR at load. ~32 MB total.
 COPY src/ ./src/
-RUN mkdir -p /app/weights
+COPY weights/ ./weights/
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    WEIGHTS_DIR=/app/weights
+    WEIGHTS_DIR=/app/weights \
+    # Lambda Web Adapter config
+    AWS_LWA_PORT=8000 \
+    AWS_LWA_INVOKE_MODE=RESPONSE_STREAM \
+    AWS_LWA_READINESS_CHECK_PATH=/health
 
 EXPOSE 8000
 
