@@ -47,6 +47,11 @@ coverage-summary.json
 weights/
 *.weights
 
+# training archives (uploaded for local wiring) + Windows/WSL download metadata
+*.zip
+*.tar.gz
+*:Zone.Identifier
+
 # local — never commit
 .DS_Store
 *.log
