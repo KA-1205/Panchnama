@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "corepack enable && pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm turbo run build --filter=@impact/dashboard",
+  "buildCommand": "pnpm turbo run build --filter=@panchnama/dashboard",
   "outputDirectory": "apps/dashboard/dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [

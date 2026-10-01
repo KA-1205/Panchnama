@@ -57,12 +57,12 @@ services:
 
   # ---- Node API (Fastify) ----
   # The server already binds 0.0.0.0 and reads $PORT (apps/api/src/config.ts), so
-  # no port shim is needed. turbo builds @impact/shared first (^build) exactly as CI.
+  # no port shim is needed. turbo builds @panchnama/shared first (^build) exactly as CI.
   - type: web
     name: impact-api
     runtime: node
     plan: starter
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@impact/api
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@panchnama/api
     startCommand: node apps/api/dist/start.js
     healthCheckPath: /health
     autoDeploy: false
@@ -96,7 +96,7 @@ services:
     name: impact-api-worker
     runtime: node
     plan: starter
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@impact/api
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@panchnama/api
     startCommand: node apps/api/dist/jobs/workers.js
     autoDeploy: false
     envVars:

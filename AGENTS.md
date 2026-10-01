@@ -113,7 +113,7 @@ These are correctness requirements, not preferences. Do not weaken them to make 
 - `pnpm` only. Never `npm install` or `yarn`.
 - Runtime validation with Zod at every trust boundary: HTTP input, webhook payloads, Cloudinary responses, queue messages.
 - Prefer named exports. One component or function per file unless tightly coupled.
-- Imports: `@impact/shared` for cross-service types. Never import across `apps/*`.
+- Imports: `@panchnama/shared` for cross-service types. Never import across `apps/*`.
 
 ### Python
 - `ruff` + `mypy --strict`. Fully type-annotated public functions.

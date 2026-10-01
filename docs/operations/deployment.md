@@ -331,7 +331,7 @@ VITE_CLOUDINARY_UPLOAD_PRESET=verified_capture
 
 # Optional
 VITE_MAPLIBRE_STYLE_URL=https://...  # MapLibre style, not Mapbox
-VITE_APP_NAME=Impact Media Platform
+VITE_APP_NAME=Panchnama
 
 # NOT HERE. CLOUDINARY_API_SECRET is server-only and belongs on the API host.
 # It must never be set in Vercel env vars for a VITE_ app — anything without
@@ -426,7 +426,7 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Impact Capture',
+  name: 'Panchnama Capture',
   slug: 'impact-capture',
   version: '1.0.0',
   orientation: 'portrait',
@@ -436,7 +436,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.impact.capture',
+    bundleIdentifier: 'com.panchnama.capture',
     infoPlist: {
       NSCameraUsageDescription: 'This app needs camera access to capture field evidence',
       NSLocationWhenInUseUsageDescription: 'This app needs location access to geotag evidence',
@@ -445,7 +445,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png', backgroundColor: '#ffffff' },
-    package: 'com.impact.capture',
+    package: 'com.panchnama.capture',
     permissions: ['CAMERA', 'ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
   },
   plugins: [

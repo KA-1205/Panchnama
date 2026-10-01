@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Impact Capture",
+    "name": "Panchnama Capture",
     "slug": "impact-capture",
     "version": "0.0.0",
     "orientation": "portrait",
@@ -9,15 +9,15 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.impact.capture",
+      "bundleIdentifier": "com.panchnama.capture",
       "infoPlist": {
-        "NSCameraUsageDescription": "Impact Capture records geo-tagged evidence photos and video.",
-        "NSLocationWhenInUseUsageDescription": "Impact Capture records the GPS location and accuracy of each captured asset.",
-        "NSMicrophoneUsageDescription": "Impact Capture records audio with evidence video."
+        "NSCameraUsageDescription": "Panchnama Capture records geo-tagged evidence photos and video.",
+        "NSLocationWhenInUseUsageDescription": "Panchnama Capture records the GPS location and accuracy of each captured asset.",
+        "NSMicrophoneUsageDescription": "Panchnama Capture records audio with evidence video."
       }
     },
     "android": {
-      "package": "com.impact.capture",
+      "package": "com.panchnama.capture",
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",
@@ -29,15 +29,15 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Impact Capture records geo-tagged evidence photos and video.",
-          "microphonePermission": "Impact Capture records audio with evidence video.",
+          "cameraPermission": "Panchnama Capture records geo-tagged evidence photos and video.",
+          "microphonePermission": "Panchnama Capture records audio with evidence video.",
           "recordAudioAndroid": true
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Impact Capture records the GPS location and accuracy of each captured asset."
+          "locationWhenInUsePermission": "Panchnama Capture records the GPS location and accuracy of each captured asset."
         }
       ],
       "expo-secure-store"
