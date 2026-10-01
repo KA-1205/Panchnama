@@ -11,7 +11,7 @@
 # mismatch makes every API→ML call 401).
 
 envVarGroups:
-  - name: impact-shared-secrets
+  - name: panchnama-shared-secrets
     envVars:
       - key: INTERNAL_JWT_SECRET # MUST be identical in api, worker, and ml-service
         sync: false
@@ -32,7 +32,7 @@ services:
   # `type: keyvalue`. An empty ipAllowList keeps it reachable only from your own
   # Render services (no public endpoint).
   - type: redis
-    name: impact-redis
+    name: panchnama-redis
     plan: starter
     ipAllowList: []
     maxmemoryPolicy: noeviction
@@ -43,7 +43,7 @@ services:
   # NOTE: this endpoint is internet-facing — the API authenticates to it with
   # INTERNAL_JWT_SECRET; do not disable that check (AGENTS.md §3.5).
   - type: web
-    name: impact-ml-service
+    name: panchnama-ml-service
     runtime: docker
     dockerfilePath: ./apps/ml-service/Dockerfile
     dockerContext: ./apps/ml-service
@@ -51,7 +51,7 @@ services:
     healthCheckPath: /health
     autoDeploy: false
     envVars:
-      - fromGroup: impact-shared-secrets
+      - fromGroup: panchnama-shared-secrets
       - key: WEIGHTS_DIR
         value: /app/weights
 
@@ -59,7 +59,7 @@ services:
   # The server already binds 0.0.0.0 and reads $PORT (apps/api/src/config.ts), so
   # no port shim is needed. turbo builds @panchnama/shared first (^build) exactly as CI.
   - type: web
-    name: impact-api
+    name: panchnama-api
     runtime: node
     plan: starter
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@panchnama/api
@@ -67,7 +67,7 @@ services:
     healthCheckPath: /health
     autoDeploy: false
     envVars:
-      - fromGroup: impact-shared-secrets
+      - fromGroup: panchnama-shared-secrets
       - key: NODE_ENV
         value: production
       - key: SUPABASE_ANON_KEY
@@ -79,9 +79,9 @@ services:
       - key: REDIS_URL
         fromService:
           type: redis
-          name: impact-redis
+          name: panchnama-redis
           property: connectionString
-      # Full URL incl. scheme, e.g. https://impact-ml-service.onrender.com — set
+      # Full URL incl. scheme, e.g. https://panchnama-ml-service.onrender.com — set
       # after the ML service's first deploy. (Render's fromService exposes only the
       # bare host, which the ML client needs prefixed, so this stays explicit.)
       - key: ML_SERVICE_URL
@@ -93,20 +93,20 @@ services:
 
   # ---- BullMQ queue worker: same build, different entrypoint ----
   - type: worker
-    name: impact-api-worker
+    name: panchnama-api-worker
     runtime: node
     plan: starter
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@panchnama/api
     startCommand: node apps/api/dist/jobs/workers.js
     autoDeploy: false
     envVars:
-      - fromGroup: impact-shared-secrets
+      - fromGroup: panchnama-shared-secrets
       - key: NODE_ENV
         value: production
       - key: REDIS_URL
         fromService:
           type: redis
-          name: impact-redis
+          name: panchnama-redis
           property: connectionString
       - key: ML_SERVICE_URL
         sync: false
