@@ -1,0 +1,11 @@
+# Keep the EAS build archive small. None of this is needed to build the
+# capture app, and some of it is multi-GB (ML venv/datasets/weights), which
+# otherwise overflows a small /tmp during tarball creation.
+apps/ml-service/
+supabase/
+docs/
+brag/
+scratch/
+*.zip
+*.onnx
+*.onnx.data
