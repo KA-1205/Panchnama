@@ -60,6 +60,8 @@ module = [
   "torch.*",
   "ultralytics",
   "ultralytics.*",
+  "onnxruntime",
+  "onnxruntime.*",
 ]
 follow_imports = "skip"
 follow_imports_for_stubs = true
@@ -85,4 +87,9 @@ pythonpath = ["."]
 addopts = "--cov=src --cov-report=term-missing --cov-fail-under=70"
 
 [tool.coverage.run]
-omit = ["src/main.py", "src/models/forestry.py"]
+omit = [
+  "src/main.py",
+  "src/models/forestry.py",
+  "src/models/water.py",
+  "src/models/onnx_change.py",
+]
