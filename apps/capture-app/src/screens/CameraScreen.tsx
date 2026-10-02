@@ -56,18 +56,15 @@ export function CameraScreen({ runtime, selection, orgId, appVersion, onCaptured
   };
 
   async function getBestGpsFix(): Promise<GpsFix> {
-    try {
-      const granted = await runtime.location.ensurePermission();
-      if (granted) {
-        const fix = await runtime.location.currentFix();
-        if (fix && Number.isFinite(fix.accuracy_m) && fix.accuracy_m <= 50) {
-          return fix;
-        }
-      }
-    } catch {
-      // Hardware location unavailable or timed out; use high-accuracy fallback fix
+    const granted = await runtime.location.ensurePermission();
+    if (!granted) {
+      throw new Error('Location permission denied. GPS fix is required for field evidence.');
     }
-    return { lat: 19.1234, lon: 72.8765, accuracy_m: 3.2, provider: 'fused' };
+    const fix = await runtime.location.currentFix().catch(() => null);
+    if (!fix || !Number.isFinite(fix.accuracy_m)) {
+      throw new Error('GPS signal unavailable. Please ensure location services are enabled.');
+    }
+    return fix;
   }
 
   async function ingest(fileUri: string, exif: Record<string, unknown> | undefined, assetType: 'image' | 'video'): Promise<void> {
@@ -91,7 +88,7 @@ export function CameraScreen({ runtime, selection, orgId, appVersion, onCaptured
         return;
       }
 
-      setStatus('Captured & Enqueued! Initiating live sync…');
+      setStatus('Captured & Enqueued in Queue! Initiating live sync…');
 
       // Immediately trigger live sync to upload to Cloudinary & register asset
       void runSyncOnce(runtime.queue, runtime.network, runtime.uploader).then((syncRes) => {
@@ -115,22 +112,15 @@ export function CameraScreen({ runtime, selection, orgId, appVersion, onCaptured
     setCapturing(true);
     setStatus('Capturing photo…');
     try {
-      let photoUri: string | undefined;
-      let photoExif: Record<string, unknown> | undefined;
-
-      if (cameraRef.current) {
-        const photo = await cameraRef.current.takePictureAsync({ exif: true }).catch(() => undefined);
-        photoUri = photo?.uri;
-        photoExif = photo?.exif as Record<string, unknown> | undefined;
+      if (!cameraRef.current) {
+        throw new Error('Camera hardware non-responsive');
+      }
+      const photo = await cameraRef.current.takePictureAsync({ exif: true });
+      if (!photo?.uri) {
+        throw new Error('Camera capture failed: empty frame returned');
       }
 
-      // Fallback synthetic URI if running in environment where camera hardware is unattached
-      if (!photoUri) {
-        photoUri = `file:///tmp/capture_${Date.now()}.jpg`;
-        photoExif = { Make: 'Panchnama', Model: 'FieldCaptureDevice', Orientation: 1 };
-      }
-
-      await ingest(photoUri, photoExif, 'image');
+      await ingest(photo.uri, photo.exif as Record<string, unknown> | undefined, 'image');
     } catch (err) {
       setStatus(`Shutter Failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -147,13 +137,18 @@ export function CameraScreen({ runtime, selection, orgId, appVersion, onCaptured
     setRecording(true);
     setStatus('Recording video (max 30s)…');
     try {
-      const video = await cameraRef.current?.recordAsync({
+      if (!cameraRef.current) {
+        throw new Error('Camera hardware non-responsive');
+      }
+      const video = await cameraRef.current.recordAsync({
         maxDuration: MAX_VIDEO_DURATION_MS / 1000,
-      }).catch(() => undefined);
+      });
       setRecording(false);
       
-      const videoUri = video?.uri ?? `file:///tmp/capture_${Date.now()}.mp4`;
-      await ingest(videoUri, undefined, 'video');
+      if (!video?.uri) {
+        throw new Error('Video recording failed: empty buffer returned');
+      }
+      await ingest(video.uri, undefined, 'video');
     } catch (err) {
       setRecording(false);
       setStatus(`Record Failed: ${err instanceof Error ? err.message : String(err)}`);
