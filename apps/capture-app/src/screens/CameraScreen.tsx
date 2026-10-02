@@ -66,13 +66,8 @@ export function CameraScreen({ runtime, selection, orgId, appVersion, onCaptured
       gpsFix,
       appVersion,
     });
-    if (result.ok) {
-      setStatus('Captured — queued for sync.');
-      onCaptured();
-    } else {
-      const reason = 'reason' in result ? (result as { reason: string }).reason : 'Unknown error';
-      setStatus(`Blocked: ${reason}`);
-    }
+    setStatus(result.ok ? 'Captured — queued for sync.' : `Blocked: ${result.reason}`);
+    if (result.ok) onCaptured();
   }
 
   async function onShutter(): Promise<void> {

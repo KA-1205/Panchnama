@@ -67,7 +67,7 @@ export function QueueScreen({ runtime }: Props): JSX.Element {
           <View style={styles.itemCard}>
             <View style={styles.itemHeader}>
               <Text style={[styles.itemState, { color: STATE_COLOUR[item.state] }]}>● {item.state}</Text>
-              <Text style={styles.itemTime}>{new Date(item.createdAt).toLocaleTimeString()}</Text>
+              <Text style={styles.itemTime}>{new Date(item.enqueuedAt).toLocaleTimeString()}</Text>
             </View>
             <Text style={styles.itemId} numberOfLines={1}>Public ID: {item.request.publicId}</Text>
             {item.rejectionReason && <Text style={styles.reason}>Reason: {item.rejectionReason}</Text>}
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 
   summary: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justify: 'space-around',
     backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
