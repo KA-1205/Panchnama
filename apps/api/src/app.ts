@@ -138,13 +138,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(cors, {
     origin: (origin, cb) => {
       if (origin === undefined) return cb(null, true); // non-browser / same-origin
-      const cleanOrigin = origin.replace(/\/$/, '');
-      const cleanDashboardUrl = (deps.config.DASHBOARD_URL || '').replace(/\/$/, '');
       const allowed =
-        cleanOrigin === cleanDashboardUrl ||
-        cleanOrigin.endsWith('.vercel.app') ||
-        deps.config.NODE_ENV !== 'production' ||
-        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin);
+        origin === deps.config.DASHBOARD_URL ||
+        (deps.config.NODE_ENV !== 'production' &&
+          /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin));
       cb(null, allowed);
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
