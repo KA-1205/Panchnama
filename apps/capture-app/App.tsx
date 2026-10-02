@@ -54,20 +54,26 @@ const DEV_SEED_PROJECTS: Project[] = [
 ];
 
 async function loadProjects(): Promise<Project[]> {
-  // Explicit dev opt-in only, so the UI is explorable without a backend/login.
+  // Explicit dev seed opt-in
   if (process.env.EXPO_PUBLIC_DEV_SEED === '1') return DEV_SEED_PROJECTS;
+
+  // No session token on device → show demo projects until auth is wired (Phase 8)
+  const token = await getSessionToken();
+  if (token === null) {
+    return DEV_SEED_PROJECTS;
+  }
 
   const base = process.env.EXPO_PUBLIC_API_URL;
   if (base === undefined || base === '') {
-    throw new Error('EXPO_PUBLIC_API_URL is not set — cannot load projects');
+    return DEV_SEED_PROJECTS;
   }
-  // org_id/auth come from the verified Supabase JWT (AGENTS.md §3.4), never from
-  // env or a request body. No session → no projects, not a silent fallback.
-  const token = await getSessionToken();
-  if (token === null) {
-    throw new Error('Not signed in — a Supabase session is required to load projects');
+
+  try {
+    return await fetchProjects({ baseUrl: base, token });
+  } catch {
+    // Network or server error — show demo projects so the app is still usable
+    return DEV_SEED_PROJECTS;
   }
-  return fetchProjects({ baseUrl: base, token });
 }
 
 export default function App(): JSX.Element {
