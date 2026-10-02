@@ -31,13 +31,8 @@ export function QueueScreen({ runtime }: Props): JSX.Element {
     setItems(runtime.queue.list());
   }, [runtime.queue]);
 
-  // Auto-refresh queue list & counts every 1 second so live updates show instantly
   useEffect(() => {
     refresh();
-    const timer = setInterval(() => {
-      refresh();
-    }, 1000);
-    return () => clearInterval(timer);
   }, [refresh]);
 
   const onSyncNow = useCallback(async () => {

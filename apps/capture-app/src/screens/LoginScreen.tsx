@@ -20,16 +20,20 @@ export function LoginScreen({ onLoginSuccess, initialEmail }: Props): JSX.Elemen
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleAuthenticate(targetEmail: string, targetPass: string): Promise<void> {
+  async function handleAuthenticate(): Promise<void> {
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email address and password');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      // Direct live authentication against Supabase Auth endpoint
-      const result = await loginWithSupabase({ email: targetEmail, password: targetPass });
+      const result = await loginWithSupabase({ email, password });
       await setSessionToken(result.token);
       onLoginSuccess(result.token, result.userEmail, 'member');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      setError(err instanceof Error ? err.message : 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -39,40 +43,13 @@ export function LoginScreen({ onLoginSuccess, initialEmail }: Props): JSX.Elemen
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>MEMBER PORTAL</Text>
+          <Text style={styles.badgeText}>PANCHNAMA AI</Text>
         </View>
-        <Text style={styles.mainTitle}>Panchnama AI</Text>
-        <Text style={styles.subTitle}>MEDIA INTELLIGENCE PLATFORM</Text>
+        <Text style={styles.mainTitle}>Field Capture Login</Text>
+        <Text style={styles.subTitle}>AUTHENTICATED EVIDENCE PORTAL</Text>
       </View>
 
-      {/* Demo Credentials Quick Login Card */}
-      <View style={styles.demoCard}>
-        <View style={styles.demoHeaderRow}>
-          <Text style={styles.demoTitle}>⚡ Live Member Login</Text>
-          <View style={styles.roleChip}>
-            <Text style={styles.roleChipText}>Role: Member</Text>
-          </View>
-        </View>
-        <Text style={styles.demoDesc}>
-          Authenticate directly with live Supabase Auth as a field member to access real inspection projects and sync evidence.
-        </Text>
-        <Pressable
-          style={styles.demoButton}
-          disabled={loading}
-          onPress={() => void handleAuthenticate('member@panchnama.ai', 'MemberPass123!')}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.textInverted} />
-          ) : (
-            <Text style={styles.demoButtonText}>Log In with Member Account</Text>
-          )}
-        </Pressable>
-      </View>
-
-      {/* Manual Credentials Form */}
       <View style={styles.formCard}>
-        <Text style={styles.formHeading}>Sign In with Account Credentials</Text>
-
         <Text style={styles.label}>Email Address</Text>
         <TextInput
           style={styles.input}
@@ -82,6 +59,7 @@ export function LoginScreen({ onLoginSuccess, initialEmail }: Props): JSX.Elemen
           placeholderTextColor={colors.textMuted}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
         />
 
         <Text style={styles.label}>Password</Text>
@@ -94,22 +72,28 @@ export function LoginScreen({ onLoginSuccess, initialEmail }: Props): JSX.Elemen
           secureTextEntry
         />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error !== null && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>⚠️ {error}</Text>
+          </View>
+        )}
 
         <Pressable
           style={[styles.submitButton, loading && styles.buttonDisabled]}
           disabled={loading}
-          onPress={() => void handleAuthenticate(email, password)}
+          onPress={() => void handleAuthenticate()}
         >
-          <Text style={styles.submitButtonText}>
-            {loading ? 'Authenticating…' : 'Sign In'}
-          </Text>
+          {loading ? (
+            <ActivityIndicator size="small" color={colors.textInverted} />
+          ) : (
+            <Text style={styles.submitButtonText}>Sign In to Workspace</Text>
+          )}
         </Pressable>
       </View>
 
       <View style={styles.footerInfo}>
         <Text style={styles.footerText}>
-          🔒 Direct Supabase JWT authentication & RLS policy enforced.
+          🔒 Securing evidence with Supabase JWT & hardware Ed25519 signatures.
         </Text>
       </View>
     </View>
@@ -129,7 +113,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: colors.softAccent,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
     marginBottom: 8,
@@ -143,7 +127,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   mainTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
     color: colors.textPrimary,
     letterSpacing: -0.5,
@@ -156,109 +140,61 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  demoCard: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  demoHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  demoTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  roleChip: {
-    backgroundColor: colors.elevated,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  roleChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.brandPrimary,
-  },
-  demoDesc: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 14,
-    lineHeight: 16,
-  },
-  demoButton: {
-    backgroundColor: colors.brandPrimary,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  demoButtonText: {
-    color: colors.textInverted,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-
   formCard: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 16,
-    padding: 16,
-  },
-  formHeading: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 12,
+    padding: 20,
   },
   label: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: 6,
     marginTop: 8,
   },
   input: {
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 14,
     color: colors.textPrimary,
+  },
+  errorContainer: {
+    backgroundColor: colors.softAccent,
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12,
   },
   errorText: {
     color: colors.error,
     fontSize: 12,
-    marginTop: 8,
+    fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: colors.brandSecondary,
-    paddingVertical: 12,
+    backgroundColor: colors.brandPrimary,
+    paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 20,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   submitButtonText: {
     color: colors.textInverted,
-    fontWeight: '700',
-    fontSize: 13,
+    fontWeight: '800',
+    fontSize: 14,
   },
 
   footerInfo: {
-    marginTop: 20,
+    marginTop: 24,
     alignItems: 'center',
   },
   footerText: {

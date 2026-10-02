@@ -1,8 +1,8 @@
 /**
  * App root (Panchnama AI Media Intelligence Platform - Capture App).
- * Bootstraps the native capture runtime, registers sync triggers, loads the
- * org's real & demo inspection projects, supports member authentication,
- * and renders screens themed with the official Panchnama AI color palette.
+ * Bootstraps the native capture runtime, enforces strict Supabase authentication & RLS,
+ * loads organization projects directly from the API/Supabase DB, and renders screens
+ * themed with the official Panchnama AI color palette.
  */
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View, Pressable } from 'react-native';
@@ -17,74 +17,38 @@ import { createCaptureRuntime, registerSyncTriggers, type CaptureRuntime } from 
 import { getSessionToken, clearSessionToken } from './src/native/session.js';
 import { fetchProjects } from './src/api.js';
 import { colors } from './src/theme.js';
+import { base64Decode } from './src/utils/base64.js';
 import type { CaptureSelection } from './src/projects.js';
 import type { Project } from '@panchnama/shared/rn';
 
 type Screen = 'login' | 'picker' | 'camera' | 'queue';
 
-/**
- * Real inspection projects suite for Panchnama AI field workers across multiple sectors.
- */
-const REAL_DEMO_PROJECTS: Project[] = [
-  {
-    id: '00000000-0000-4000-8000-000000000001',
-    org_id: '00000000-0000-4000-8000-0000000000aa',
-    name: 'Riverside Reforestation & Bio-Shield',
-    config: {
-      observation_types: [
-        { type: 'sapling_survival', label: 'Sapling Survival Audit', model: 'forestry_v1', gps_radius: 25 },
-        { type: 'canopy_cover', label: 'Canopy Density Check', model: 'forestry_v1', gps_radius: 50 },
-      ],
-    },
-    parent_project_id: null,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '00000000-0000-4000-8000-000000000002',
-    org_id: '00000000-0000-4000-8000-0000000000aa',
-    name: 'North Zone Planting Plot A (Sub-project)',
-    config: { observation_types: [] },
-    parent_project_id: '00000000-0000-4000-8000-000000000001',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '00000000-0000-4000-8000-000000000003',
-    org_id: '00000000-0000-4000-8000-0000000000aa',
-    name: 'Sundarbans Coastal Mangrove Protection',
-    config: {
-      observation_types: [
-        { type: 'mangrove_health', label: 'Mangrove Density & Health', model: 'wetlands_v1', gps_radius: 30 },
-        { type: 'soil_erosion', label: 'Tidal Bank Soil Erosion', model: 'erosion_v1', gps_radius: 20 },
-      ],
-    },
-    parent_project_id: null,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '00000000-0000-4000-8000-000000000004',
-    org_id: '00000000-0000-4000-8000-0000000000aa',
-    name: 'Thar Solar Infrastructure & Array Audit',
-    config: {
-      observation_types: [
-        { type: 'solar_panel_defect', label: 'PV Thermal & Defect Audit', model: 'solar_v1', gps_radius: 15 },
-      ],
-    },
-    parent_project_id: null,
-    created_at: new Date().toISOString(),
-  },
-];
+/** Extract org_id from JWT payload claims safely without using atob (AGENTS.md §3.4) */
+function extractOrgIdFromJwt(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const decodedStr = base64Decode(parts[1]);
+    if (!decodedStr) return null;
+    const payload = JSON.parse(decodedStr);
+    const appMeta = payload.app_metadata ?? {};
+    return appMeta.org_id ?? payload.org_id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 async function loadProjects(token: string | null): Promise<Project[]> {
-  if (process.env.EXPO_PUBLIC_DEV_SEED === '1') return REAL_DEMO_PROJECTS;
-  if (!token) return REAL_DEMO_PROJECTS;
+  if (!token) return [];
 
   const base = process.env.EXPO_PUBLIC_API_URL;
-  if (!base) return REAL_DEMO_PROJECTS;
+  if (!base) return [];
 
   try {
     return await fetchProjects({ baseUrl: base, token });
   } catch {
-    return REAL_DEMO_PROJECTS;
+    return [];
   }
 }
 
@@ -92,9 +56,9 @@ export default function App(): JSX.Element {
   const [runtime, setRuntime] = useState<CaptureRuntime | null>(null);
   const [projects, setProjects] = useState<readonly Project[]>([]);
   const [selection, setSelection] = useState<CaptureSelection | null>(null);
-  const [screen, setScreen] = useState<Screen>('picker');
+  const [screen, setScreen] = useState<Screen>('login');
   const [sessionToken, setSessionTokenState] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>('member@panchnama.ai');
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,8 +73,11 @@ export default function App(): JSX.Element {
         setSessionTokenState(token);
         if (!token) {
           setScreen('login');
+          setProjects([]);
+        } else {
+          setProjects(await loadProjects(token));
+          setScreen('picker');
         }
-        setProjects(await loadProjects(token));
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -122,14 +89,21 @@ export default function App(): JSX.Element {
     await clearSessionToken();
     setSessionTokenState(null);
     setUserEmail(null);
+    setProjects([]);
+    setSelection(null);
     setScreen('login');
   };
 
   const handleLoginSuccess = async (token: string, email: string) => {
-    setSessionTokenState(token);
-    setUserEmail(email);
-    setProjects(await loadProjects(token));
-    setScreen('picker');
+    try {
+      setSessionTokenState(token);
+      setUserEmail(email);
+      const loaded = await loadProjects(token);
+      setProjects(loaded);
+      setScreen('picker');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    }
   };
 
   if (error !== null) {
@@ -152,7 +126,7 @@ export default function App(): JSX.Element {
     );
   }
 
-  const orgId = process.env.EXPO_PUBLIC_ORG_ID ?? '00000000-0000-4000-8000-0000000000aa';
+  const derivedOrgId = extractOrgIdFromJwt(sessionToken) ?? process.env.EXPO_PUBLIC_ORG_ID ?? '00000000-0000-4000-8000-0000000000aa';
 
   const SCREEN_ICONS: Record<Screen, string> = {
     login: '🔑',
@@ -160,6 +134,8 @@ export default function App(): JSX.Element {
     camera: '📷',
     queue: '⚡',
   };
+
+  const isAuthenticated = sessionToken !== null;
 
   return (
     <View style={styles.root}>
@@ -170,63 +146,68 @@ export default function App(): JSX.Element {
         <View>
           <Text style={styles.headerBrand}>Panchnama AI</Text>
           <Text style={styles.headerSub}>
-            {sessionToken && userEmail ? `👤 ${userEmail} (Member)` : 'Media Intelligence Platform'}
+            {isAuthenticated && userEmail ? `👤 ${userEmail}` : 'Media Intelligence Platform'}
           </Text>
         </View>
-        {sessionToken ? (
+        {isAuthenticated ? (
           <Pressable style={styles.logoutChip} onPress={() => void handleLogout()}>
             <Text style={styles.logoutChipText}>Log Out</Text>
           </Pressable>
         ) : (
           <View style={styles.guestChip}>
-            <Text style={styles.guestChipText}>Demo Mode</Text>
+            <Text style={styles.guestChipText}>🔒 Sign In Required</Text>
           </View>
         )}
       </View>
 
       <View style={styles.content}>
-        {screen === 'login' && (
+        {!isAuthenticated ? (
           <LoginScreen
             initialEmail={userEmail}
             onLoginSuccess={(token, email) => void handleLoginSuccess(token, email)}
           />
+        ) : (
+          <>
+            {screen === 'picker' && (
+              <ProjectPickerScreen
+                projects={projects}
+                onSelected={(s) => {
+                  setSelection(s);
+                  setScreen('camera');
+                }}
+              />
+            )}
+            {screen === 'camera' && selection !== null && (
+              <CameraScreen
+                runtime={runtime}
+                selection={selection}
+                orgId={derivedOrgId}
+                appVersion={CAPTURE_APP_VERSION}
+                onCaptured={() => setScreen('queue')}
+              />
+            )}
+            {screen === 'queue' && <QueueScreen runtime={runtime} />}
+          </>
         )}
-        {screen === 'picker' && (
-          <ProjectPickerScreen
-            projects={projects}
-            onSelected={(s) => {
-              setSelection(s);
-              setScreen('camera');
-            }}
-          />
-        )}
-        {screen === 'camera' && selection !== null && (
-          <CameraScreen
-            runtime={runtime}
-            selection={selection}
-            orgId={orgId}
-            appVersion={CAPTURE_APP_VERSION}
-            onCaptured={() => setScreen('queue')}
-          />
-        )}
-        {screen === 'queue' && <QueueScreen runtime={runtime} />}
       </View>
 
-      {/* Navigation Tab Bar */}
-      <View style={styles.tabbar}>
-        {(['login', 'picker', 'camera', 'queue'] as Screen[]).map((s) => {
-          const isActive = s === screen;
-          return (
-            <Pressable key={s} style={styles.tabItem} onPress={() => setScreen(s)}>
-              <Text style={styles.tabIcon}>{SCREEN_ICONS[s]}</Text>
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {s}
-              </Text>
-              {isActive && <View style={styles.tabActiveIndicator} />}
-            </Pressable>
-          );
-        })}
-      </View>
+      {/* Navigation Tab Bar - Gated on authentication */}
+      {isAuthenticated && (
+        <View style={styles.tabbar}>
+          {(['picker', 'camera', 'queue'] as Screen[]).map((s) => {
+            const isActive = s === screen;
+            return (
+              <Pressable key={s} style={styles.tabItem} onPress={() => setScreen(s)}>
+                <Text style={styles.tabIcon}>{SCREEN_ICONS[s]}</Text>
+                <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                  {s}
+                </Text>
+                {isActive && <View style={styles.tabActiveIndicator} />}
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }
