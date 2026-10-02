@@ -68,7 +68,7 @@ Panchnama closes all three: capture is **signed at the moment of the shutter**, 
 ## 🧠 How it works
 
 <p align="center">
-  <img src="docs/assets/diagrams/01-system-topology.png" alt="Panchnama System Topology" width="100%">
+  <img src="docs/assets/animations/01-system-topology.gif" alt="Panchnama System Topology" width="100%">
 </p>
 
 ```mermaid
@@ -106,7 +106,7 @@ The platform's architecture, field capture pipelines, evidence verification, and
 
 High-level architecture showing client boundaries, Cloudinary media ingestion, API service workers, ML inference routing, and Supabase RLS isolation.
 
-![System Topology](docs/assets/diagrams/01-system-topology.png)
+![System Topology](docs/assets/animations/01-system-topology.gif)
 
 </details>
 
@@ -117,7 +117,7 @@ High-level architecture showing client boundaries, Cloudinary media ingestion, A
 
 On-device evidence collection pipeline: camera capture, EXIF freezing, SHA-256 commit hashing, Ed25519 hardware key signing (Secure Enclave / Keystore), MMKV local persistence, and background sync retry logic.
 
-![Field Capture Workflow](docs/assets/diagrams/02-capture-act-workflow.png)
+![Field Capture Workflow](docs/assets/animations/02-capture-act-workflow.gif)
 
 </details>
 
@@ -128,7 +128,7 @@ On-device evidence collection pipeline: camera capture, EXIF freezing, SHA-256 c
 
 Direct unsigned media upload to Cloudinary with signed `context` payload, Fastify webhook ingestion, signature re-verification, and BullMQ worker job dispatch.
 
-![Asset Upload & Ingest](docs/assets/diagrams/03-asset-upload-ingest.png)
+![Asset Upload & Ingest](docs/assets/animations/03-asset-upload-ingest.gif)
 
 </details>
 
@@ -139,7 +139,7 @@ Direct unsigned media upload to Cloudinary with signed `context` payload, Fastif
 
 Step-by-step sequence diagram covering direct upload, webhook notification, server-side RFC 8785 EXIF verification, cryptographic validation, and database state updates.
 
-![Evidence Ingest Sequence](docs/assets/diagrams/04-evidence-ingest-sequence.png)
+![Evidence Ingest Sequence](docs/assets/animations/04-evidence-ingest-sequence.gif)
 
 </details>
 
@@ -150,7 +150,7 @@ Step-by-step sequence diagram covering direct upload, webhook notification, serv
 
 Immutability model tracking raw evidence assets to AI derivatives, audit log SHA-256 chain recalculation, and tamper-detection safeguards.
 
-![Evidence Lineage & Dataflow](docs/assets/diagrams/05-evidence-lineage-dataflow.png)
+![Evidence Lineage & Dataflow](docs/assets/animations/05-evidence-lineage-dataflow.gif)
 
 </details>
 
@@ -161,7 +161,7 @@ Immutability model tracking raw evidence assets to AI derivatives, audit log SHA
 
 State machine detailing transition rules for assets across capture, ingestion, verification (`pass`, `fail`, `unknown`), AI pairing, change detection, and audit report generation.
 
-![Asset Lifecycle](docs/assets/diagrams/06-asset-lifecycle.png)
+![Asset Lifecycle](docs/assets/animations/06-asset-lifecycle.gif)
 
 </details>
 
@@ -198,7 +198,7 @@ done
 ```
 
 > [!WARNING]
-> Required keys include `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `INTERNAL_JWT_SECRET`. See [ENVIRONMENT.md](ENVIRONMENT.md) for the full list. Never commit secrets or expose them in a client bundle.
+> Required keys include `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `INTERNAL_JWT_SECRET`. See [docs/operations/deployment.md](docs/operations/deployment.md) for the full list. Never commit secrets or expose them in a client bundle.
 
 **3. Start local infrastructure**
 
@@ -302,7 +302,7 @@ Panchnama/
 ├── docs/                 # Architecture, planning, operations
 ├── scripts/              # Helper scripts (e.g. check-secrets.sh)
 ├── supabase/migrations/  # 20 numbered migrations
-├── AGENTS.md             # Rules and conventions
+├── docs/internal/AGENTS.md   # Rules and conventions
 └── turbo.json            # Turborepo pipeline
 ```
 
@@ -471,7 +471,7 @@ Yes. Add a new `SectorModel` class, register it in `SECTOR_MODELS`, and add a pr
 
 ## 🤝 Contributing
 
-1. Read [AGENTS.md](AGENTS.md) for conventions and the definition of done.
+1. Read [AGENTS.md](docs/internal/AGENTS.md) for conventions and the definition of done.
 2. Make sure `pnpm lint`, `pnpm typecheck`, and `pnpm test` pass.
 3. Run `bash scripts/check-secrets.sh` before committing.
 4. Open a pull request; one teammate approval is required.
