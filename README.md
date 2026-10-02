@@ -198,7 +198,7 @@ done
 ```
 
 > [!WARNING]
-> Required keys include `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `INTERNAL_JWT_SECRET`. See [docs/operations/deployment.md](docs/operations/deployment.md) for the full list. Never commit secrets or expose them in a client bundle.
+> Required keys include `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `INTERNAL_JWT_SECRET`. Never commit secrets or expose them in a client bundle.
 
 **3. Start local infrastructure**
 
@@ -302,7 +302,6 @@ Panchnama/
 ├── docs/                 # Architecture, planning, operations
 ├── scripts/              # Helper scripts (e.g. check-secrets.sh)
 ├── supabase/migrations/  # 20 numbered migrations
-├── docs/internal/AGENTS.md   # Rules and conventions
 └── turbo.json            # Turborepo pipeline
 ```
 
@@ -405,7 +404,6 @@ Panchnama core platform is fully implemented across all four services:
 - **ML Intelligence Service (FastAPI / PyTorch)**: Sector-specific computer vision models (YOLOv8 + ChangeFormer), keyframe extraction, visual diff overlays.
 - **Dashboard (React 19 / Vite)**: MapLibre GL spatial search, before/after diff player, integrity timeline viewer, Supabase RLS data access.
 
-For full acceptance criteria and validation matrix, see [docs/architecture/MVP_EXIT_CRITERIA.md](docs/architecture/MVP_EXIT_CRITERIA.md).
 
 ## 📚 Documentation
 
@@ -413,13 +411,10 @@ For full acceptance criteria and validation matrix, see [docs/architecture/MVP_E
 | --- | --- |
 | [ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) | Component topology, security boundaries, and decision log |
 | [PRD.md](docs/planning/PRD.md) | Product requirements and acceptance criteria |
-| [BUILD_ORDER.md](docs/planning/BUILD_ORDER.md) | Phased execution plan and module gates |
 | [DATABASE_SCHEMA.md](docs/architecture/DATABASE_SCHEMA.md) | PostgreSQL table DDL, RLS policies, and integrity functions |
 | [API Contracts](docs/architecture/api-contracts.md) | Fastify REST endpoints and ML service interfaces |
 | [Cloudinary Transformations](docs/architecture/CLOUDINARY_TRANSFORMATIONS.md) | Verified Cloudinary parameters for media pipelines |
 | [Frontend Architecture](docs/architecture/FRONTEND_ARCHITECTURE.md) | Capture app and dashboard module layout |
-| [Demo Walkthrough](docs/operations/demo.md) | Live demo execution script and verification steps |
-| [Deployment Guide](docs/operations/deployment.md) | Production setup and deployment procedures |
 
 
 ## ❓ FAQ
@@ -471,7 +466,6 @@ Yes. Add a new `SectorModel` class, register it in `SECTOR_MODELS`, and add a pr
 
 ## 🤝 Contributing
 
-1. Read [AGENTS.md](docs/internal/AGENTS.md) for conventions and the definition of done.
 2. Make sure `pnpm lint`, `pnpm typecheck`, and `pnpm test` pass.
 3. Run `bash scripts/check-secrets.sh` before committing.
 4. Open a pull request; one teammate approval is required.
