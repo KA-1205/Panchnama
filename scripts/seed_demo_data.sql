@@ -457,3 +457,4 @@ ALTER TABLE assets ENABLE TRIGGER assets_evidence_no_delete;
 ALTER TABLE assets ENABLE TRIGGER assets_evidence_immutable;
 
 COMMIT;
+
