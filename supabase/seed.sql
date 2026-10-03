@@ -452,6 +452,41 @@ INSERT INTO evidence_packages (
   'finalized'
 );
 
+-- 11. Clearly marked local-demo audit entries. Use the append function so each
+-- row is hash-chained with its stored hashed_at; never hand-insert hash values.
+SELECT append_audit_log(
+  'f62702ab-597c-40f3-9f75-1b0404644cf0',
+  'demo_seed',
+  'system',
+  'supabase/seed.sql',
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'::jsonb,
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'
+);
+SELECT append_audit_log(
+  '89200069-4dac-4626-b63d-c78cc48fc9a4',
+  'demo_seed',
+  'system',
+  'supabase/seed.sql',
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'::jsonb,
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'
+);
+SELECT append_audit_log(
+  '2161618f-b5dc-4d17-bfeb-ea16cbcbfe3a',
+  'demo_seed',
+  'system',
+  'supabase/seed.sql',
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'::jsonb,
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'
+);
+SELECT append_audit_log(
+  'ef2060df-49fe-4b4b-ac33-6cb967cef89c',
+  'demo_seed',
+  'system',
+  'supabase/seed.sql',
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'::jsonb,
+  '{"demo":true,"event":"seeded_asset","source":"supabase/seed.sql"}'
+);
+
 -- Re-enable immutability triggers
 ALTER TABLE assets ENABLE TRIGGER assets_evidence_no_delete;
 ALTER TABLE assets ENABLE TRIGGER assets_evidence_immutable;

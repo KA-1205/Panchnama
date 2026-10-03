@@ -552,7 +552,7 @@ CREATE TABLE audit_logs (
   change_event_id UUID REFERENCES change_events(id),
   evidence_package_id UUID REFERENCES evidence_packages(id),
   
-  action TEXT NOT NULL, -- 'upload', 'transform', 'tag', 'pair', 'detect', 'package', 'export', 'verify'
+  action TEXT NOT NULL, -- 'upload', 'transform', 'tag', 'pair', 'detect', 'package', 'export', 'verify'; 'demo_seed' is reserved for explicitly marked synthetic demo rows
   actor_type TEXT CHECK (actor_type IN ('system', 'user', 'ml_model', 'device')),
   actor_id TEXT, -- user_id, device_id, 'cloudinary', 'ml_model_v3', etc.
   details JSONB,
