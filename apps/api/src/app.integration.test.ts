@@ -273,7 +273,7 @@ describe('Phase 3 gate — org isolation and delivery URLs', () => {
       method: 'POST',
       url: `/v1/assets/${assetB.id}/original-url`,
       headers: { authorization: `Bearer ${makeToken({ orgId: ORG_A, role: 'member' })}` },
-      payload: { ttl_seconds: 300 },
+      payload: {},
     });
     expect(res.statusCode).toBe(404);
   });

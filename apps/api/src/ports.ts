@@ -541,8 +541,8 @@ export interface CloudinaryPort {
   verifyNotificationSignature(body: string, timestamp: string, signature: string): boolean;
   /** Signed, no-expiry delivery URL for a derivative (`type: upload`). */
   signedDerivativeUrl(publicId: string, transformation: string): string;
-  /** Authenticated original URL gated by an `auth_token` with a real `exp`. */
-  originalUrl(publicId: string, ttlSeconds: number): { url: string; expiresAt: number };
+  /** SDK-signed authenticated original URL. Signed URLs do not expire. */
+  originalUrl(publicId: string, resourceType: 'image' | 'video'): string;
   /**
    * Apply a transformation to an existing asset as an EAGER derivative and return
    * the derived asset's identity. Generative transforms are asynchronous

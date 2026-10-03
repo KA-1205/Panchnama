@@ -77,16 +77,13 @@ export function createCloudinaryAdapter(config: Config): CloudinaryPort {
       });
     },
 
-    originalUrl(publicId, ttlSeconds) {
-      // Evidence assets uploaded via upload presets are stored with type 'upload' (§3.11).
-      const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
-      const url = cloudinary.url(publicId, {
+    originalUrl(publicId, resourceType) {
+      return cloudinary.url(publicId, {
         secure: true,
-        resource_type: 'image',
-        type: 'upload',
+        resource_type: resourceType,
+        type: 'authenticated',
         sign_url: true,
       });
-      return { url, expiresAt };
     },
 
     async createEagerDerivative(input: EagerDerivativeInput): Promise<EagerDerivativeResult> {

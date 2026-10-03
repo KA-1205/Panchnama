@@ -8,7 +8,7 @@
  *  - `overwrite: false` + `invalidate: false` so a `public_id` (content-addressed
  *    `{org}/{project}/{sha256}`) can never be rewritten to point at other bytes
  *    (ARCHITECTURE.md §3.2, AGENTS.md §3.1 — originals are immutable);
- *  - originals land as `type: authenticated` (delivery is gated by an auth_token);
+ *  - originals land as `type: authenticated` (delivery requires an SDK-signed URL);
  *  - an `allowed_formats` + `max_file_size` bound;
  *  - AI tagging (`categorization`/`detection`) at ingest so tags are copied into
  *    Postgres `observations`, never queried back from Cloudinary (§3.9);
