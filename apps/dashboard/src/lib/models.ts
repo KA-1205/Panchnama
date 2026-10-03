@@ -375,7 +375,7 @@ export interface EvidenceDetailModel {
   gpsProvider: Field<string | null>;
   gpsTimestamp: Field<string | null>;
   ntpOffsetSeconds: Field<number | null>;
-  deviceMonotonicMs: Field<number | string | null>;
+  deviceMonotonicMs: Field<string | null>;
   quarantinedAt: Field<string | null>;
   verifiedAt: Field<string | null>;
   media: Field<AssetMediaRef | null>;

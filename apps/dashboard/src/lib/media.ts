@@ -1,5 +1,4 @@
 import { CloudinaryImage } from '@cloudinary/url-gen';
-import { limitFit } from '@cloudinary/url-gen/actions/resize';
 import type { AssetType } from '../types/database';
 
 const env: Record<string, string | undefined> = import.meta.env;
@@ -34,7 +33,7 @@ export function buildDeliveryUrl(ref: AssetMediaRef, options: DeliveryOptions): 
   if (ref.publicId === null || cloudName === undefined || cloudName.length === 0) return null;
   const image = new CloudinaryImage(ref.publicId, { cloudName });
   return image
-    .resize(limitFit().width(options.maxWidth).height(options.maxHeight))
+    .resize({ width: options.maxWidth, height: options.maxHeight, fit: 'limit', crop: 'limit' })
     .quality('auto')
     .toURL();
 }
