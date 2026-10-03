@@ -65,6 +65,9 @@ export function createCloudinaryAdapter(config: Config): CloudinaryPort {
     },
 
     signedDerivativeUrl(publicId, transformation) {
+      if (publicId.startsWith('http://') || publicId.startsWith('https://')) {
+        return publicId;
+      }
       // Derivatives are `type: upload`, signed, no expiry (§3.11). The SDK
       // computes the HMAC-SHA1 signature.
       return cloudinary.url(publicId, {
@@ -78,6 +81,9 @@ export function createCloudinaryAdapter(config: Config): CloudinaryPort {
     },
 
     originalUrl(publicId, resourceType) {
+      if (publicId.startsWith('http://') || publicId.startsWith('https://')) {
+        return publicId;
+      }
       return cloudinary.url(publicId, {
         secure: true,
         resource_type: resourceType,
