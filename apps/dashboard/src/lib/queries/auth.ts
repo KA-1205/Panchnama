@@ -32,9 +32,10 @@ export async function getCurrentClaims(): Promise<DataState<AppClaims>> {
   if (!token) return unauthorized<AppClaims>();
   const claims = parseJwtPayload(token);
   const resolved = claimsOrUnauthorized(claims, READ_ROLE);
-  return 'status' in resolved && resolved.status === 'unauthorized'
-    ? unauthorized<AppClaims>(resolved.requiredRole)
-    : ready(resolved);
+  if ('status' in resolved && resolved.status === 'unauthorized') {
+    return unauthorized<AppClaims>(resolved.requiredRole);
+  }
+  return ready(resolved as AppClaims);
 }
 
 export async function getCurrentUser(): Promise<DataState<CurrentUser>> {
