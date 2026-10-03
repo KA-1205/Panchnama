@@ -16,6 +16,7 @@ export interface QuarantineQueueProps {
  *  "Reason unavailable" whenever nothing actually failed. */
 export function QuarantineQueue({ onSelect }: QuarantineQueueProps) {
   const state = useQuarantineQueue();
+  if (state.status === 'empty') return null;
 
   return (
     <ClayCard
