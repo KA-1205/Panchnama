@@ -50,8 +50,8 @@ function firstInvalid(errors: FieldErrors): FieldName | null {
  *  The password lives in this component's submit state alone. It is never stored, never placed in
  *  a URL or query key, never logged, and cleared the moment the attempt settles. */
 export function LoginPage({ unconfigured }: LoginPageProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('orgadmin@demo.local');
+  const [password, setPassword] = useState('Demo1234!Easy');
   const [errors, setErrors] = useState<FieldErrors>(NO_ERRORS);
   const [status, setStatus] = useState<FormStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -60,13 +60,6 @@ export function LoginPage({ unconfigured }: LoginPageProps) {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const submitting = status === 'submitting';
-
-  function fillDemoAccount(demoEmail: string, demoPass: string): void {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setErrors(NO_ERRORS);
-    setMessage(null);
-  }
 
   /** Validate one field and publish the result. Called on blur, and again on change only once a
    *  field is already showing an error, so a correction clears the message without nagging. */
@@ -166,42 +159,6 @@ export function LoginPage({ unconfigured }: LoginPageProps) {
         <p className="pn-auth-lede">
           Use the account issued by your organisation.
         </p>
-
-        <div className="pn-auth-demo" aria-label="Demo credentials">
-          <div className="pn-auth-demo-header">
-            <div className="pn-auth-demo-title">
-              <Icon name="check" size={14} className="pn-badge-glyph" />
-              <span>Demo Workspace Credentials</span>
-            </div>
-            <span className="pn-auth-demo-badge">Quick Sign In</span>
-          </div>
-
-          <p className="pn-auth-demo-intro">
-            Click below to auto-fill demo account credentials:
-          </p>
-
-          <div className="pn-auth-demo-accounts">
-            <button
-              type="button"
-              className="pn-auth-demo-account"
-              onClick={() => fillDemoAccount('orgadmin@demo.local', 'Demo1234!Easy')}
-              title="Auto-fill Org Admin credentials"
-            >
-              <div className="pn-auth-demo-role-row">
-                <span className="pn-auth-demo-role">Org Admin</span>
-                <span className="pn-auth-demo-fill-btn">Auto-fill &rarr;</span>
-              </div>
-              <div className="pn-auth-demo-creds">
-                <code>orgadmin@demo.local</code>
-                <span className="pn-auth-demo-sep">&bull;</span>
-                <code>Demo1234!Easy</code>
-              </div>
-              <span className="pn-auth-demo-desc">
-                Full workspace access: 2 projects (Forestry &amp; Water), 50 assets, change detection &amp; report generation.
-              </span>
-            </button>
-          </div>
-        </div>
 
         {unconfigured ? (
           <div className="pn-note pn-note-fail" role="alert">
