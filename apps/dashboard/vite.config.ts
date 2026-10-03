@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
    both mount from `src/main.tsx`, and `?state=` selects the harness. */
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
-  const apiTarget = env.VITE_API_URL ?? env.VITE_PANCHNAMA_API_BASE;
+  const configuredApiTarget = env.VITE_API_URL ?? env.VITE_PANCHNAMA_API_BASE;
+  const apiTarget = configuredApiTarget?.replace(/\/+$/, '');
 
   return {
     plugins: [react()],

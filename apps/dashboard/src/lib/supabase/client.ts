@@ -180,7 +180,8 @@ export function rpc(fn: string, args: Record<string, unknown> = {}): Promise<Pos
    A client never supplies a `public_id`. It asks by `asset_id` and the API resolves the
    resource under RLS, so every media request is an authenticated fetch of a private route. */
 
-const apiBase: string | null = env.VITE_API_URL ?? env.VITE_PANCHNAMA_API_BASE ?? null;
+const configuredApiBase = env.VITE_API_URL ?? env.VITE_PANCHNAMA_API_BASE;
+const apiBase: string | null = configuredApiBase?.replace(/\/+$/, '') || null;
 
 export const apiConfigured: boolean = Boolean(apiBase);
 

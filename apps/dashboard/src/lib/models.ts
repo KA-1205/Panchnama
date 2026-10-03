@@ -617,8 +617,6 @@ export interface ChangeDetailModel {
   paired: boolean;
   before: Asset | null;
   after: Asset | null;
-  beforeMedia: AssetMediaRef | null;
-  afterMedia: AssetMediaRef | null;
   diffPublicId: Field<string>;
   metricRows: ChangeMetricRow[];
   provenance: ModelProvenanceModel;
