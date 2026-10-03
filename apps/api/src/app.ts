@@ -130,6 +130,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const jwks = new JwksCache(
     `${deps.config.SUPABASE_URL.replace(/\/$/, '')}/auth/v1/.well-known/jwks.json`,
   );
+  const dashboardOrigin = new URL(deps.config.DASHBOARD_URL).origin;
 
   // CORS: the dashboard is a browser SPA on a different origin, so it cannot call
   // the API without CORS headers. Lock the allowed origin to the configured
@@ -139,7 +140,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     origin: (origin, cb) => {
       if (origin === undefined) return cb(null, true); // non-browser / same-origin
       const allowed =
-        origin === deps.config.DASHBOARD_URL ||
+        origin === dashboardOrigin ||
         (deps.config.NODE_ENV !== 'production' &&
           /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin));
       cb(null, allowed);
