@@ -964,7 +964,7 @@ timestamps, and per-asset chain verdicts (via `verify_audit_chain_range`); never
 
 | Asset kind | Cloudinary type | Access | Why |
 |---|---|---|---|
-| Originals (photos, video) | `authenticated` | `auth_token` carrying a real `exp` | A leaked URL alone is useless, and the CDN enforces expiry |
+| Originals (photos, video) | `authenticated` | SDK-signed URL; no expiry on the Free plan | RLS gates URL issuance; treat a signed URL as a bearer link |
 | Derivatives (thumbnails, diffs, report copies) | `upload` | signed URL, **no expiry** — acceptable because these are not sensitive | CDN-cacheable and fast. If a derivative ever becomes sensitive, promote it to `authenticated` rather than assuming the signature expires. |
 
 > **Do not hand-roll the signature.** An earlier draft in this file built an HMAC-**SHA-256**
@@ -1000,22 +1000,19 @@ export function signedDerivativeUrl(
   });
 }
 
-/** Original: authenticated asset, gated by a token with a genuine exp. */
-export function originalUrl(publicId: string, ttlSeconds = 300): string {
+/** Original: authenticated asset, signed with the Cloudinary SDK. No expiry on the Free plan. */
+export function originalUrl(publicId: string, resourceType: 'image' | 'video'): string {
   return cloudinary.url(publicId, {
     secure: true,
-    resource_type: 'image',
+    resource_type: resourceType,
     type: 'authenticated',
     sign_url: true,
-  }) + tokenFor(publicId, ttlSeconds);
+  });
 }
 ```
 
-`tokenFor` must come from the Cloudinary SDK's auth-token helper or the Admin API's
-`generate_auth_token` endpoint — **not** from hand-written HMAC. Confirm the exact helper name
-and token shape against the live account in Phase 0; the token carries `stp` (start), `exp`
-(expiry), the URL path, and an HMAC over those fields, keyed by the token key configured in
-the Cloudinary console.
+The Cloudinary SDK signs the authenticated delivery URL using the server-only API secret. This
+signature does not expire on the Free plan. Never hand-roll the URL signature.
 
 **Cache-busting and immutability.** Public IDs are content-addressed
 (`{org_id}/{project_id}/{sha256}`) and uploads use `invalidate: false`, so the URL for a given
