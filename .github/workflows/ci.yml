@@ -36,6 +36,13 @@ jobs:
         run: pnpm turbo run lint typecheck build --filter=@panchnama/api
       - name: Test with enforced 80% coverage
         run: pnpm --filter @panchnama/api test:coverage
+      - name: Read-only benchmark runner checks
+        run: node --test scripts/benchmark-api.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage-summary
+          path: apps/api/coverage/coverage-summary.json
       - name: Docs↔reality (endpoints)
         run: pnpm --filter @panchnama/api check:docs:endpoints
 

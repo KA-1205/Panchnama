@@ -11,6 +11,8 @@ Each phase has a **gate** — a concrete, checkable condition. Do not start the 
 
 ## Current State
 
+**Maintenance verification — 17 October 2026:** added failure-path coverage for bounded/pending generative report polling and provider errors. Local API branch coverage is **80.22%**, with the original 80% threshold unchanged. Added a read-only staging benchmark runner and tests; device/staging timings and manual exit checks remain deferred, not self-certified. This is maintenance of the current implementation, not a claim that all release gates passed.
+
 **Update this table at the end of every session.** It is the first thing to read
 and the first thing to update — it exists so a fresh session never re-derives
 where the work stopped.

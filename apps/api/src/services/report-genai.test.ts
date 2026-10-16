@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { makeFakeDb, makeFakeCloudinary, ORG_A } from '../testing/fakes.js';
 import { runReportGenAi } from './report-genai.js';
 import { GENERATIVE_TRANSFORMS } from '../lib/transformations.js';
@@ -101,5 +101,105 @@ describe('runReportGenAi (Phase 9 gen-AI job gate)', () => {
         },
       ),
     ).rejects.toMatchObject({ statusCode: 422 });
+  });
+
+  it('polls a pending derivative until ready, then stops', async () => {
+    const { db, asset, reportCopy } = setup();
+    const cloudinary = makeFakeCloudinary({ generativePending: true });
+    const pollReady = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const outcomes = await runReportGenAi(
+      { cloudinary, derivatives: db.derivatives, assets: db.assets, audit: db.audit, pollReady },
+      {
+        reportId: 'r',
+        orgId: ORG_A,
+        edits: [
+          {
+            parentAssetId: asset.id,
+            sourceDerivativeId: reportCopy.id,
+            transformation: GENERATIVE_TRANSFORMS.landscape_expand,
+            kind: 'report_social',
+          },
+        ],
+      },
+    );
+    expect(pollReady).toHaveBeenCalledTimes(2);
+    expect(pollReady).toHaveBeenCalledWith(outcomes[0]!.publicId);
+    expect(outcomes[0]!.ready).toBe(true);
+  });
+
+  it('keeps a stuck derivative pending after the bounded poll budget', async () => {
+    const { db, asset, reportCopy } = setup();
+    const cloudinary = makeFakeCloudinary({ generativePending: true });
+    const pollReady = vi.fn().mockResolvedValue(false);
+    const outcomes = await runReportGenAi(
+      {
+        cloudinary,
+        derivatives: db.derivatives,
+        assets: db.assets,
+        audit: db.audit,
+        pollReady,
+        maxPollAttempts: 2,
+      },
+      {
+        reportId: 'r',
+        orgId: ORG_A,
+        edits: [
+          {
+            parentAssetId: asset.id,
+            sourceDerivativeId: reportCopy.id,
+            transformation: GENERATIVE_TRANSFORMS.landscape_expand,
+            kind: 'report_social',
+          },
+        ],
+      },
+    );
+    expect(pollReady).toHaveBeenCalledTimes(2);
+    expect(outcomes[0]!.ready).toBe(false);
+    expect(await db.derivatives.getById(outcomes[0]!.derivativeId)).not.toBeNull();
+  });
+
+  it('does not claim readiness when the polling capability is absent', async () => {
+    const { db, asset, reportCopy } = setup();
+    const cloudinary = makeFakeCloudinary({ generativePending: true });
+    const outcomes = await runReportGenAi(
+      { cloudinary, derivatives: db.derivatives, assets: db.assets, audit: db.audit },
+      {
+        reportId: 'r',
+        orgId: ORG_A,
+        edits: [
+          {
+            parentAssetId: asset.id,
+            sourceDerivativeId: reportCopy.id,
+            transformation: GENERATIVE_TRANSFORMS.landscape_expand,
+            kind: 'report_social',
+          },
+        ],
+      },
+    );
+    expect(outcomes[0]!.ready).toBe(false);
+  });
+
+  it('propagates a provider error without reporting success', async () => {
+    const { db, asset, reportCopy } = setup();
+    const cloudinary = makeFakeCloudinary({ generativePending: true });
+    const pollReady = vi.fn().mockRejectedValue(new Error('provider unavailable'));
+    await expect(
+      runReportGenAi(
+        { cloudinary, derivatives: db.derivatives, assets: db.assets, audit: db.audit, pollReady },
+        {
+          reportId: 'r',
+          orgId: ORG_A,
+          edits: [
+            {
+              parentAssetId: asset.id,
+              sourceDerivativeId: reportCopy.id,
+              transformation: GENERATIVE_TRANSFORMS.landscape_expand,
+              kind: 'report_social',
+            },
+          ],
+        },
+      ),
+    ).rejects.toThrow('provider unavailable');
+    expect(pollReady).toHaveBeenCalledTimes(1);
   });
 });

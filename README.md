@@ -204,7 +204,7 @@ done
 
 ```bash
 supabase start       # Postgres, Auth, Realtime, Storage
-supabase db reset    # applies all 20 migrations
+supabase db reset    # applies all 21 migrations
 supabase test db     # optional: pgTAP tests (86 assertions)
 ```
 
@@ -301,7 +301,7 @@ Panchnama/
 │   └── ui-components/    # Shared React components
 ├── docs/                 # Architecture, planning, operations
 ├── scripts/              # Helper scripts (e.g. check-secrets.sh)
-├── supabase/migrations/  # 20 numbered migrations
+├── supabase/migrations/  # 21 numbered migrations
 └── turbo.json            # Turborepo pipeline
 ```
 
@@ -479,3 +479,11 @@ This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) f
 <p align="center">
   If Panchnama is useful to you, consider giving it a ⭐
 </p>
+
+## Verification and performance evidence
+
+[CI runs](https://github.com/KA-1205/Panchnama/actions) enforce coverage thresholds; targets are not a statement of achieved coverage. See [benchmark instructions and measurement limits](docs/operations/BENCHMARKS.md) for the existing 1,000-asset SQL harness and the read-only staging search/chain runner. Capture-to-dashboard latency and the five-minute human audit remain unmeasured until a device/staging session records them.
+
+## My contributions
+
+See [the contribution record](docs/CONTRIBUTIONS.md) for authored API integration, testing, dashboard, and demo-data work.
