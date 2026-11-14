@@ -27,6 +27,10 @@
 > [!NOTE]
 > Panchnama is built for **NGOs, governments, and sustainability organisations** that collect huge volumes of field media but cannot organise, verify, or report on it. It is an **evidence and measurement system**, not a DAM or a stock library. Media is stored on Cloudinary, but the product is the proof around it.
 
+**Project scope:** a collaborative field-evidence prototype. Start with the [capture workflow](docs/assets/animations/02-capture-act-workflow.gif), [contribution record](docs/CONTRIBUTIONS.md), and [validation limits](docs/operations/BENCHMARKS.md). The animations illustrate architecture; they are not recordings of a deployed device test.
+
+**What remains to validate:** physical-device signing, field accuracy of the sector models, capture-to-dashboard latency, and the under-five-minute human audit target. Cryptographic integrity detects changes to recorded evidence; it does not prove that a photographed scene or GPS claim is true.
+
 ## 🔍 The problem
 
 An NGO uploads 40,000 field photos from a six-month reforestation programme. Three months later a donor asks for evidence that 800 hectares were restored. What exists is a phone gallery: nobody can find the northern plots, nobody can prove the "after" photos were taken on the same ground as the "before" photos, and a hand-counted sapling number is impossible to audit.
@@ -43,7 +47,7 @@ Panchnama closes all three: capture is **signed at the moment of the shutter**, 
 
 | Feature | What it does |
 | --- | --- |
-| **Tamper-proof capture** | Mobile app creates immutable, git-like commits: SHA-256 file hash, Ed25519 device signature (Secure Enclave / Keystore), frozen EXIF, GPS accuracy, and dual timestamps |
+| **Tamper-evident capture** | Mobile app creates immutable, git-like commits: SHA-256 file hash, Ed25519 signature with an explicit signing tier, frozen EXIF, GPS accuracy, and dual timestamps |
 | **Multi-sector intelligence** | One project can hold several observation types (e.g. water cleanup, road construction, mangrove planting), each with its own ML model, GPS clustering radius, and metrics schema |
 | **AI change detection** | Per-type GPS pairing, then ML routing, then quantified metrics (hectares, counts, % change) plus visual diff overlays |
 | **Video support (MVP)** | 30-second clips, auto thumbnails, keyframe extraction, keyframe-based change detection, synchronized diff player |
@@ -57,7 +61,7 @@ Panchnama closes all three: capture is **signed at the moment of the shutter**, 
 
 | Typical platforms | Panchnama |
 | --- | --- |
-| Upload portal + AI tags | **Tamper-proof capture** + cryptographic proof |
+| Upload portal + AI tags | **Tamper-evident capture** + cryptographic proof |
 | Manual before/after slider | **Auto GPS clustering** + quantified metrics (hectares, counts) |
 | Searchable gallery | **Semantic search** + GPS accuracy and observation-type filters |
 | Manual report compilation | **Template-based PDF** + video clips + integrity appendix |
@@ -115,7 +119,7 @@ High-level architecture showing client boundaries, Cloudinary media ingestion, A
 
 <br>
 
-On-device evidence collection pipeline: camera capture, EXIF freezing, SHA-256 commit hashing, Ed25519 hardware key signing (Secure Enclave / Keystore), MMKV local persistence, and background sync retry logic.
+On-device evidence collection pipeline: camera capture, EXIF freezing, SHA-256 commit hashing, Ed25519 signing with an explicit signing tier, MMKV local persistence, and background sync retry logic.
 
 ![Field Capture Workflow](docs/assets/animations/02-capture-act-workflow.gif)
 
@@ -258,13 +262,13 @@ eas build --platform all   # EAS build for the stores
 | Docs vs. reality check | `cd apps/api && pnpm run check:docs -- --endpoints-only` |
 | Secrets scan | `bash scripts/check-secrets.sh` |
 
-Coverage floors: API 80% branch, ML 70%.
+Configured coverage floors: API 80% branch, ML 70%. These thresholds are not achieved-coverage measurements.
 
 ## 🧰 Tech stack
 
 | Layer | Technology | Purpose |
 | --- | --- | --- |
-| **Capture app** | Expo (React Native), `expo-camera`, `react-native-keychain` | Tamper-proof capture, Ed25519 keys in Secure Enclave |
+| **Capture app** | Expo (React Native), `expo-camera`, `react-native-keychain` | Tamper-evident capture and tiered Ed25519 signing |
 | **Media core** | Cloudinary | Upload, transformations, AI tagging, video keyframes |
 | **Database** | Supabase (PostgreSQL + PostGIS + RLS) | Assets, audit logs, realtime, auth |
 | **API** | Node.js 20, Fastify, TypeScript, BullMQ | REST, webhooks, verification, workers |
@@ -339,12 +343,16 @@ Projects can nest through `parent_project_id` (recursive CTE for tree queries). 
 
 | Model key | Current status |
 | --- | --- |
-| `forestry` | Registered as `trained`, but a **placeholder: no weights exist yet** |
-| `water` | `unsupported` |
-| `infrastructure` | `unsupported` |
-| `agriculture` | `unsupported` |
+| `forestry` | Forestry pipeline; a registry row with no weight URI uses deterministic synthetic detectors. Learned inference requires the configured weights. |
+| `water` | Water pipeline with the same explicit learned/synthetic routing; availability depends on the applied registry migrations and weight files. |
+| `infrastructure` | No implemented trained pipeline; untrained rows return `unsupported`. |
+| `agriculture` | No implemented trained pipeline; untrained rows return `unsupported`. |
+
+See [the runtime registry](apps/ml-service/src/registry.py) and [model promotion migration](supabase/migrations/20261001000000_promote_trained_models.sql). Tracked model files and a `trained` registry label do not establish field accuracy; synthetic fallback output must not be presented as a learned-model result.
 
 ## 🔐 Security and integrity
+
+The [capture signer](apps/capture-app/src/native/signer.ts) stores a seed in Expo SecureStore for its fallback and signs in JavaScript. That fallback is labelled `server`; it is not a non-exportable Secure Enclave key. The current `resolveKeystoreSigner()` returns `null`; hardware-backed device signing remains unimplemented.
 
 | Threat | Mitigation |
 | --- | --- |
@@ -353,7 +361,7 @@ Projects can nest through `parent_project_id` (recursive CTE for tree queries). 
 | Caption added after capture | Signed at capture with the device Ed25519 key |
 | File swapped | Content-addressable storage (SHA-256) |
 | Backdated capture | Device and server timestamps both recorded |
-| App tampering | Code signing (Expo EAS) + hardware-backed keys |
+| App tampering | Signing tier is recorded; hardware isolation requires a verified native signer |
 
 - **Immutable hash chain:** `current_hash = SHA256(previous_hash + action + actor + timestamp)` in `audit_logs`.
 - **Verification:** `verify_asset_integrity(asset_id)` returns five checks (EXIF hash, SHA-256 match, caption signature, sync delay, audit chain), each `pass`, `fail`, or `unknown`.
@@ -397,9 +405,9 @@ Full contracts: [docs/architecture/api-contracts.md](docs/architecture/api-contr
 
 ## 📊 Project status
 
-Panchnama core platform is fully implemented across all four services:
+Implementation spans four services; deployment and measurement limits are recorded separately in [the validation guide](docs/operations/BENCHMARKS.md):
 
-- **Capture App (Expo / React Native)**: Hardware-backed Ed25519 signing (Secure Enclave / Keystore), EXIF freezing, offline MMKV commit queue, direct Cloudinary uploads.
+- **Capture App (Expo / React Native)**: Software Ed25519 signing with a SecureStore seed, explicitly labelled `server`; hardware signing remains open, EXIF freezing, offline MMKV commit queue, direct Cloudinary uploads.
 - **API Service (Fastify / Node 20)**: Cloudinary webhook verification, RFC 8785 EXIF re-canonicalization, BullMQ background queues, audit-ready PDF/HTML report generation.
 - **ML Intelligence Service (FastAPI / PyTorch)**: Sector-specific computer vision models (YOLOv8 + ChangeFormer), keyframe extraction, visual diff overlays.
 - **Dashboard (React 19 / Vite)**: MapLibre GL spatial search, before/after diff player, integrity timeline viewer, Supabase RLS data access.
@@ -486,4 +494,6 @@ This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) f
 
 ## My contributions
 
-See [the contribution record](docs/CONTRIBUTIONS.md) for authored API integration, testing, dashboard, and demo-data work.
+Kartik Arora’s documented contributions include API CORS/dashboard integration, integration tests, dashboard flows, and seed-data tooling. [Authored commits and supporting source](docs/CONTRIBUTIONS.md) distinguish this work from the broader team project.
+
+TODO(Kartik): confirm the complete team roster and remaining responsibilities.
